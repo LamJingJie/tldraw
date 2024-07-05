@@ -34,10 +34,11 @@ export class SubTemplateTool extends StateNode {
         // Padding for description and date
         let padding_for_desc: number = 200
         let padding_per_frame: number = 30;
+        let padding_for_name: number = 40;
 
         // Dimensions of each submission frame
         let width_of_each_submission: number = 200;
-        let height_of_each_submission: number = 200 * number_of_submissions;
+        let height_of_each_submission: number = 200 * number_of_submissions + padding_for_name;
 
         // Top left to bottom positioning, leave space for description and date
         let curr_position_subframe_y: number = currentPagePoint.y - (main_frame_height / 2) + padding_for_desc;
@@ -69,6 +70,7 @@ export class SubTemplateTool extends StateNode {
                     w: width_of_each_submission,
                     h: height_of_each_submission,
                     name: 'test_name 0' + String(i),
+                    submissions: number_of_submissions,
                 },
             }
             frame_submissions_data.push(data);

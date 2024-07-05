@@ -7,14 +7,21 @@ import {
     TLAsset
 } from "tldraw";
 
+import {getLocalStorageItem, InputData} from './LocalStorage'
+
 type mySubmissionFrameProps = {
     h: number;
     w: number;
     name: string;
     filled: boolean;
+    submissions: number;
 };
 
 type mySubmissionFrameClass = TLBaseShape<'submission_frame', mySubmissionFrameProps>;
+
+/**
+ * This is the submission frame for each of the students
+ */
 
 export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
 
@@ -87,6 +94,7 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
         name: T.string,
         w: T.number,
         filled: T.boolean,
+        submissions: T.number,
     };
 
     //default props
@@ -96,6 +104,7 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
             name: 'student_name',
             w: 200,
             filled: false,
+            submissions: 1,
         }
     }
 
@@ -118,13 +127,16 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
         return resizeBox(shape, info)
     }
 
+    // 1. Creates an array with length = number of submissions
+    // 2. Iterates through every element in that array to populate undefined elements into elements with the same values as its indexes
+    // 3. Takes in array, filters the elements (NOT INDEXES) and returns out new array with index > 0
+    // 4. Maps through the new array and creates a divider for each element
     component(submission: mySubmissionFrameClass) {
         const borderColor = submission.props.filled ? 'green' : 'red';
 
         return (
             <HTMLContainer
                 style={{
-                    padding: 16,
                     height: submission.props.h,
                     width: submission.props.w,
                     pointerEvents: 'all',
@@ -137,9 +149,20 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
                     zIndex: 0,
                 }}
             >
-                <div>
-                    {submission.props.name}
-                </div>
+                <div className="name">{submission.props.name}</div>
+                {[...Array(submission.props.submissions)].map((_, index1) => index1).filter(element => element > 0).map((ele) =>(
+                    <div
+                        key={`divider-${ele}`}
+                        className = 'divider'
+                        style = {{
+                            width: submission.props.w,
+                            borderBottom: '2px solid white',
+                            height: (submission.props.h - 40) / submission.props.submissions ,
+
+                        }}
+                    />
+                ))}
+
             </HTMLContainer>
         )
     }
