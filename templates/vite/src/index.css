@@ -1,6 +1,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700@400;700&display=swap');
 @import url('tldraw/tldraw.css');
 
+
+
 body {
 	font-family: 'Inter', sans-serif;
+	background-color: red;
 }
+
+/*Drawing board*/
+.board{
+	height: 100%;
+}
+
+
+/* ui-overrides.tsx */
+.style_grp{
+	padding: 5px;
+}
+
+.input_grp, .input_style{
+	font-size: 9px;
+}
+
+#template_label{
+	width: 100%;
+	text-align: center;
+	font-weight: bolder;
+}
+
+
+/* SubmissionFrameUtil.tsx */
