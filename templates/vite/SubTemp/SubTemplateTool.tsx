@@ -58,6 +58,7 @@ export class SubTemplateTool extends StateNode {
                 curr_position_subframe_y += height_of_each_submission + padding_per_frame + 20; // Move to the next row
                 total_width = 0; // Reset the width
                 curr_position_subframe_x = (currentPagePoint.x + total_width) - (main_frame_width / 2) + padding_per_frame; // Reset the x position
+                total_width += width_of_each_submission + padding_per_frame;
             }
 
             // Create the submission frame
