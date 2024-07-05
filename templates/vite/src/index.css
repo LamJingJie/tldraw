@@ -20,7 +20,7 @@ body {
 }
 
 .input_grp, .input_style{
-	font-size: 10px;
+	font-size: 12px;
 }
 
 #template_label{
@@ -33,7 +33,11 @@ body {
 /* SubmissionFrameUtil.tsx */
 .name{
 	padding: 8px;
-	font-size: 20px;
 	border-bottom: 3px solid whitesmoke;
 	z-index: 999;
 }
+
+.name_input{
+	font-size: 20px;
+}
+

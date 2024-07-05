@@ -4,10 +4,11 @@ import {
     resizeBox,
     TLOnResizeHandler,
     StateNode,
-    TLAsset
+    TLAsset,
+    TldrawUiInput
 } from "tldraw";
 
-import {getLocalStorageItem, InputData} from './LocalStorage'
+import { getLocalStorageItem, InputData } from './LocalStorage'
 
 type mySubmissionFrameProps = {
     h: number;
@@ -29,11 +30,11 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
     override canResize = () => true;
     override isAspectRatioLocked = () => false;
     override canSnap = () => true;
+    override canEdit = () => true;
+    override canDropShapes = () => true;    // Allow any shape to be dropped on the submission_frame shape 
+    override canBind = () => true;         
+    override canReceiveNewChildrenOfType = () => true;
 
-    // Allow any shape to be dropped on the submission_frame shape 
-    override canDropShapes = (frame: mySubmissionFrameClass, shapes: TLShape[]) => {
-        return true;
-    }
 
     // When a shape is dragged over the submission_frame
     override onDragShapesOver = (frame: mySubmissionFrameClass, shapes: TLShape[]) => {
@@ -78,15 +79,18 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
     override onDragShapesOut = (frame: mySubmissionFrameClass, shapes: TLShape[]) => {
         // Change the parentID of that child shape
         this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
-        // Change color
-        this.editor.updateShape({
-            id: frame.id,
-            type: 'submission_frame',
-            props: {
-                ...frame.props, // Keep the other props
-                filled: false,
-            }
-        })
+        // Change color if no child is left
+        if (!this.editor.getSortedChildIdsForParent(frame.id).length) {
+            this.editor.updateShape({
+                id: frame.id,
+                type: 'submission_frame',
+                props: {
+                    ...frame.props, // Keep the other props
+                    filled: false,
+                }
+            });
+        }
+       
     }
 
     static override props: ShapeProps<mySubmissionFrameClass> = {
@@ -134,6 +138,17 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
     component(submission: mySubmissionFrameClass) {
         const borderColor = submission.props.filled ? 'green' : 'red';
 
+        const nameChange = (value: string) => {
+            this.editor.updateShape({
+                id: submission.id,
+                type: 'submission_frame',
+                props: {
+                    ...submission.props,
+                    name: value,
+                }
+            });
+        }
+
         return (
             <HTMLContainer
                 style={{
@@ -144,20 +159,24 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
                     color: 'whitesmoke',
                     border: '3px solid',
                     borderColor: borderColor,
-                    borderRadius: '5%',
+                    borderRadius: '2%',
                     overflow: 'hidden',
                     zIndex: 0,
                 }}
             >
-                <div className="name">{submission.props.name}</div>
-                {[...Array(submission.props.submissions)].map((_, index1) => index1).filter(element => element > 0).map((ele) =>(
+                <div className="name">
+                    <TldrawUiInput onValueChange={(value) => nameChange(value)} defaultValue={submission.props.name}
+                        className="name_input">
+                    </TldrawUiInput>
+                </div>
+                {[...Array(submission.props.submissions)].map((_, index1) => index1).filter(element => element > 0).map((ele) => (
                     <div
                         key={`divider-${ele}`}
-                        className = 'divider'
-                        style = {{
+                        className='divider'
+                        style={{
                             width: submission.props.w,
                             borderBottom: '2px solid white',
-                            height: (submission.props.h - 40) / submission.props.submissions ,
+                            height: (submission.props.h - 40) / submission.props.submissions,
 
                         }}
                     />

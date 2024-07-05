@@ -74,37 +74,6 @@ export class SubTemplateTool extends StateNode {
                 },
             }
             frame_submissions_data.push(data);
-
-
-            // // **Create the seperators for each of the submission per student**
-            // let height_of_each_seperator: number = height_of_each_submission / number_of_submissions;
-            // const seperators_data = {
-            //     id: createShapeId(Math.random().toString()),
-            //     type:'line',
-            //     x: curr_position_subframe_x,
-            //     y: curr_position_subframe_y + height_of_each_seperator, // Line seperating each of the submissions
-            //     props:{
-            //         dash: "draw",
-            //         size: "s",
-            //         color: "black",
-            //         spline: "line",
-            //         points: {
-            //             a1: {
-            //                 id: 'a1',
-            //                 index: 'a1',
-            //                 x: 5,
-            //                 y: 0,
-            //             },
-            //             a2: {
-            //                 id: 'a2',
-            //                 index: 'a2',
-            //                 x: width_of_each_submission - 6,
-            //                 y: 0,
-            //             },
-            //         },               
-            //     },
-            // }
-            // seperator_submission.push(seperators_data);
         }
 
 
