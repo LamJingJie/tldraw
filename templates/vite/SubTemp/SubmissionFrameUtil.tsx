@@ -8,7 +8,6 @@ import {
     TldrawUiInput
 } from "tldraw";
 
-import { getLocalStorageItem, InputData } from './LocalStorage'
 
 type mySubmissionFrameProps = {
     h: number;
@@ -90,7 +89,6 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
                 }
             });
         }
-       
     }
 
     static override props: ShapeProps<mySubmissionFrameClass> = {

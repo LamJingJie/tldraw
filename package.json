@@ -38,6 +38,7 @@
 		"postinstall": "husky install && yarn refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
 		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/{bemo-worker,images.tldraw.xyz}'",
+		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/{bemo-worker,images.tldraw.xyz}'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
 		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker,images.tldraw.xyz}' --filter='packages/tldraw'",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
@@ -64,7 +65,7 @@
 	"engines": {
 		"npm": ">=7.0.0"
 	},
-	"packageManager": "yarn@4.0.2",
+	"packageManager": "yarn@4.2.2",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
 			"prettier --write --cache"

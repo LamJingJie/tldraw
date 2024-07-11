@@ -1,5 +1,5 @@
 import { BaseBoxShapeTool, FrameShapeTool, StateNode, TLPointerEvent, TLShapeId, createShapeId } from "tldraw";
-import { getLocalStorageItem, InputData } from '../SubTemp/LocalStorage';
+import { getLocalStorageItem_input, InputData } from '../SubTemp/LocalStorage';
 
 
 
@@ -8,7 +8,7 @@ export class SubTemplateTool extends StateNode {
 
     static override id = 'custom_template_id' //For Ui-overrides
     static override initial = 'idle'
-    override shapeType = 'submission_frame'
+    //override shapeType = 'submission_frame'
 
     // When the tool is selected/entered by the user
     override onEnter = () => {
@@ -19,7 +19,7 @@ export class SubTemplateTool extends StateNode {
 
     // *Bug: If include parentID prop, the shapes are not created until the main shape is moved once. It will then appear at random areas.
     override onPointerDown = () => {
-        const local_storage_data: InputData = getLocalStorageItem();
+        const local_storage_data: InputData = getLocalStorageItem_input();
 
         let main_frame_width: number = screen.width;
         let main_frame_height: number = screen.height;

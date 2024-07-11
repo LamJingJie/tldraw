@@ -30,7 +30,6 @@ import { IndexKey } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LANGUAGES } from '@tldraw/editor';
-import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
@@ -334,6 +333,25 @@ export interface BreakPointProviderProps {
 export function buildFromV1Document(editor: Editor, _document: unknown): void;
 
 // @public (undocumented)
+export function CenteredTopPanelContainer({ maxWidth, ignoreRightWidth, stylePanelWidth, marginBetweenZones, squeezeAmount, children, }: CenteredTopPanelContainerProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface CenteredTopPanelContainerProps {
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    ignoreRightWidth?: number;
+    // (undocumented)
+    marginBetweenZones?: number;
+    // (undocumented)
+    maxWidth?: number;
+    // (undocumented)
+    squeezeAmount?: number;
+    // (undocumented)
+    stylePanelWidth?: number;
+}
+
+// @public (undocumented)
 export function CheckBoxToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -444,6 +462,9 @@ export const defaultShapeTools: (typeof ArrowShapeTool)[];
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
 
 // @public (undocumented)
+export function DefaultSharePanel(): JSX_2.Element;
+
+// @public (undocumented)
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 
 // @public (undocumented)
@@ -463,6 +484,9 @@ export interface DefaultToolbarProps {
 
 // @public (undocumented)
 export const defaultTools: (typeof EraserTool | typeof HandTool | typeof ZoomTool)[];
+
+// @public (undocumented)
+export function DefaultTopPanel(): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultZoomMenu: NamedExoticComponent<TLUiZoomMenuProps>;
@@ -880,15 +904,6 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
     start: Vec;
 };
 
-// @public (undocumented)
-export function getAssetFromIndexedDb({ persistenceKey, assetId, }: {
-    assetId: string;
-    persistenceKey: string;
-}): Promise<Blob | undefined>;
-
-// @public (undocumented)
-export function getDefaultCdnBaseUrl(): string;
-
 // @public
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
@@ -941,6 +956,9 @@ export class HandTool extends StateNode {
 
 // @public (undocumented)
 export function HandToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function HelpGroup(): JSX_2.Element;
 
 // @public (undocumented)
 export function HexagonToolbarItem(): JSX_2.Element;
@@ -1024,12 +1042,16 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<any>;
     // (undocumented)
+    onResize: TLOnResizeHandler<any>;
+    // (undocumented)
     static props: {
         assetId: Validator<TLAssetId | null>;
         crop: Validator<    {
         bottomRight: VecModel;
         topLeft: VecModel;
         } | null>;
+        flipX: Validator<boolean>;
+        flipY: Validator<boolean>;
         flipX: Validator<boolean>;
         flipY: Validator<boolean>;
         h: Validator<number>;
@@ -1270,7 +1292,7 @@ export interface PageItemInputProps {
 }
 
 // @public (undocumented)
-export const PageItemSubmenu: MemoExoticComponent<({ index, listSize, item, onRename, }: PageItemSubmenuProps) => JSX_2.Element>;
+export const PageItemSubmenu: NamedExoticComponent<PageItemSubmenuProps>;
 
 // @public (undocumented)
 export interface PageItemSubmenuProps {
@@ -1298,6 +1320,15 @@ export function parseTldrawJsonFile({ json, schema, }: {
 
 // @public (undocumented)
 export function PasteMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export const PeopleMenu: NamedExoticComponent<PeopleMenuProps>;
+
+// @public (undocumented)
+export interface PeopleMenuProps {
+    // (undocumented)
+    children?: ReactNode;
+}
 
 // @public (undocumented)
 export enum PORTRAIT_BREAKPOINT {
@@ -1394,13 +1425,6 @@ export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX_2.Element;
-
-// @public (undocumented)
-export function storeAssetInIndexedDb({ persistenceKey, assetId, blob, }: {
-    assetId: string;
-    blob: Blob;
-    persistenceKey: string;
-}): Promise<void>;
 
 // @public (undocumented)
 export interface StylePickerSetProps {
@@ -1673,6 +1697,7 @@ export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 export interface TldrawImageProps extends TLSvgOptions {
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     format?: 'png' | 'svg';
+    licenseKey?: string;
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     snapshot: TLEditorSnapshot | TLStoreSnapshot;
@@ -1688,7 +1713,7 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgroundProps) => JSX_2.Element | null;
 
 // @public (undocumented)
-export const TldrawSelectionForeground: MemoExoticComponent<({ bounds, rotation, }: TLSelectionForegroundProps) => JSX_2.Element | null>;
+export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegroundProps>;
 
 // @public (undocumented)
 export function TldrawShapeIndicators(): JSX_2.Element | null;
@@ -1962,6 +1987,8 @@ export interface TLUiComponents {
     // (undocumented)
     ContextMenu?: ComponentType<TLUiContextMenuProps> | null;
     // (undocumented)
+    CursorChatBubble?: ComponentType | null;
+    // (undocumented)
     DebugMenu?: ComponentType | null;
     // (undocumented)
     DebugPanel?: ComponentType | null;
@@ -2187,6 +2214,8 @@ export interface TLUiEventMap {
         locale: string;
     };
     // (undocumented)
+    'change-user-name': null;
+    // (undocumented)
     'close-menu': {
         id: string;
     };
@@ -2277,6 +2306,8 @@ export interface TLUiEventMap {
         id: string;
     };
     // (undocumented)
+    'set-color': null;
+    // (undocumented)
     'set-style': {
         id: string;
         value: number | string;
@@ -2285,6 +2316,8 @@ export interface TLUiEventMap {
     'stack-shapes': {
         operation: 'horizontal' | 'vertical';
     };
+    // (undocumented)
+    'start-following': null;
     // (undocumented)
     'stop-following': null;
     // (undocumented)
@@ -2305,6 +2338,8 @@ export interface TLUiEventMap {
     'toggle-grid-mode': null;
     // (undocumented)
     'toggle-lock': null;
+    // (undocumented)
+    'toggle-paste-at-cursor': null;
     // (undocumented)
     'toggle-paste-at-cursor': null;
     // (undocumented)
@@ -2381,7 +2416,7 @@ export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
 }
 
 // @public (undocumented)
-export type TLUiIconType = 'align-bottom' | 'align-center-horizontal' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'blob' | 'bring-forward' | 'bring-to-front' | 'broken' | 'check-circle' | 'check' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'color' | 'cross-2' | 'cross-circle' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'disconnected' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'fill-fill' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-heart' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'horizontal-align-end' | 'horizontal-align-middle' | 'horizontal-align-start' | 'info-circle' | 'leading' | 'link' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'send-backward' | 'send-to-back' | 'share-1' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-left' | 'text-align-right' | 'toggle-off' | 'toggle-on' | 'tool-arrow' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-screenshot' | 'tool-text' | 'trash' | 'twitter' | 'undo' | 'ungroup' | 'unlock' | 'vertical-align-end' | 'vertical-align-middle' | 'vertical-align-start' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
+export type TLUiIconType = 'align-bottom' | 'align-center-horizontal' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'blob' | 'bring-forward' | 'bring-to-front' | 'broken' | 'check-circle' | 'check' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'color' | 'cross-2' | 'cross-circle' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'disconnected' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'fill-fill' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-heart' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'horizontal-align-end' | 'horizontal-align-middle' | 'horizontal-align-start' | 'info-circle' | 'leading' | 'link' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'send-backward' | 'send-to-back' | 'share-1' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'status-offline' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-left' | 'text-align-right' | 'toggle-off' | 'toggle-on' | 'tool-arrow' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-screenshot' | 'tool-text' | 'trash' | 'twitter' | 'undo' | 'ungroup' | 'unlock' | 'vertical-align-end' | 'vertical-align-middle' | 'vertical-align-start' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
 
 // @public (undocumented)
 export interface TLUiInputProps {

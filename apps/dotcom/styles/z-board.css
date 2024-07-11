@@ -4,17 +4,6 @@
 	margin-top: 4px;
 }
 
-.tlui-share-zone {
-	padding: 0px 0px 0px 0px;
-	display: flex;
-	flex-direction: row;
-	justify-content: flex-end;
-	z-index: var(--layer-panels);
-	align-items: center;
-	padding-top: 2px;
-	padding-right: 4px;
-}
-
 .tlui-share-zone__connection-status {
 	width: 8px;
 	height: 100%;

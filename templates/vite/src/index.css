@@ -8,26 +8,81 @@ body {
 	background-color: red;
 }
 
+
+
 /*Drawing board*/
 .board{
 	height: 100%;
+}
+
+button:hover{
+	cursor:pointer;
+	background-color: rgb(36, 36, 36);
+	border-radius: 3%;
 }
 
 
 /* ui-overrides.tsx */
 .style_grp{
 	padding: 5px;
+	color: whitesmoke;
 }
 
-.input_grp, .input_style{
+.input_grp, .dropdown_btn{
 	font-size: 12px;
+	width: 100%;
+}
+
+.input_grp{
+	padding:5px;
+	
+}
+
+.input_style{
+	width: 100%;
+}
+
+.sectionHeader{
+	width: 100%;
+	text-align: center;
 }
 
 #template_label{
 	width: 100%;
+	font-size: 14px;
 	text-align: center;
 	font-weight: bolder;
 }
+
+#student_input{
+	display: flex;
+}
+
+.dropdown_btn{
+	background: transparent;
+	border: none;
+	color: whitesmoke;
+}
+
+#student_list{
+	margin: 0;
+	list-style-type: none;
+	padding: 5px;
+	max-height: 300px;
+	overflow-y: auto;
+}
+
+.student_item :hover{
+	cursor: pointer;
+}
+
+.input_style:hover{
+	cursor: text !important;
+}
+
+
+
+
 
 
 /* SubmissionFrameUtil.tsx */

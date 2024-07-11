@@ -8,7 +8,6 @@ import React, {
 	useLayoutEffect,
 	useMemo,
 	useRef,
-	useState,
 	useSyncExternalStore,
 } from 'react'
 
@@ -22,7 +21,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
-import { TLAssetOptions, TLCameraOptions } from './editor/types/misc-types'
+import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -35,6 +34,7 @@ import {
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
+import { useRefState } from './hooks/useRefState'
 import { useZoomCss } from './hooks/useZoomCss'
 import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
@@ -161,15 +161,14 @@ export interface TldrawEditorBaseProps {
 	cameraOptions?: Partial<TLCameraOptions>
 
 	/**
-	 * Asset options for the editor.
-	 * @internal
-	 */
-	assetOptions?: Partial<TLAssetOptions>
-
-	/**
 	 * Options for the editor.
 	 */
 	options?: Partial<TldrawOptions>
+
+	/**
+	 * The license key.
+	 */
+	licenseKey?: string
 }
 
 /**
@@ -193,6 +192,8 @@ declare global {
 const EMPTY_SHAPE_UTILS_ARRAY = [] as const
 const EMPTY_BINDING_UTILS_ARRAY = [] as const
 const EMPTY_TOOLS_ARRAY = [] as const
+/** @internal */
+export const TL_CONTAINER_CLASS = 'tl-container'
 
 /** @public @react */
 export const TldrawEditor = memo(function TldrawEditor({
@@ -223,7 +224,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		<div
 			ref={setContainer}
 			draggable={false}
-			className={classNames('tl-container tl-theme__light', className)}
+			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
 			onPointerDown={stopEventPropagation}
 			tabIndex={-1}
 		>
@@ -339,8 +340,8 @@ function TldrawEditorWithReadyStore({
 	autoFocus = true,
 	inferDarkMode,
 	cameraOptions,
-	assetOptions,
 	options,
+	licenseKey,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -467,7 +468,15 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useCursor()
 	useDarkMode()
 	useForceUpdate()
-	useOnMount(onMount)
+	useOnMount((editor) => {
+		const teardownStore = editor.store.props.onEditorMount(editor)
+		const teardownCallback = onMount?.(editor)
+
+		return () => {
+			teardownStore?.()
+			teardownCallback?.()
+		}
+	})
 
 	return children
 }
@@ -491,7 +500,8 @@ export function ErrorScreen({ children }: LoadingScreenProps) {
 	return <div className="tl-loading">{children}</div>
 }
 
-function useOnMount(onMount?: TLOnMountHandler) {
+/** @internal */
+export function useOnMount(onMount?: TLOnMountHandler) {
 	const editor = useEditor()
 
 	const onMountEvent = useEvent((editor: Editor) => {

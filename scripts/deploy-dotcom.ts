@@ -31,10 +31,13 @@ const env = makeEnv([
 	'APP_ORIGIN',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
+	'ASSET_UPLOAD',
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
 	'DISCORD_DEPLOY_WEBHOOK_URL',
 	'DISCORD_HEALTH_WEBHOOK_URL',
+	'GC_MAPS_API_KEY',
+	'GH_TOKEN',
 	'GC_MAPS_API_KEY',
 	'GH_TOKEN',
 	'HEALTH_WORKER_UPDOWN_WEBHOOK_PATH',
@@ -42,9 +45,14 @@ const env = makeEnv([
 	'MULTIPLAYER_SERVER',
 	'R2_ACCESS_KEY_ID',
 	'R2_ACCESS_KEY_SECRET',
+	'IMAGE_WORKER',
+	'MULTIPLAYER_SERVER',
+	'R2_ACCESS_KEY_ID',
+	'R2_ACCESS_KEY_SECRET',
 	'RELEASE_COMMIT_HASH',
 	'SENTRY_AUTH_TOKEN',
 	'SENTRY_CSP_REPORT_URI',
+	'SENTRY_DSN',
 	'SENTRY_DSN',
 	'SUPABASE_LITE_ANON_KEY',
 	'SUPABASE_LITE_URL',
@@ -148,6 +156,7 @@ async function prepareDotcomApp() {
 			ASSET_UPLOAD: previewId
 				? `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 				: env.ASSET_UPLOAD,
+			IMAGE_WORKER: env.IMAGE_WORKER,
 			IMAGE_WORKER: env.IMAGE_WORKER,
 			MULTIPLAYER_SERVER: previewId
 				? `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
