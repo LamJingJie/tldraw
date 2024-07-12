@@ -58,7 +58,6 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 	const tools = useTools();
 	const isCustomTemplateSelected = useIsToolSelected(tools['template']);
 
-
 	// State management, use state when you wish to rerender the UI when the state changes
 	const [isStudentShown, setIsStudentShown] = useState(false);
 	const [student_list, setStudentList] = useState<string[]>(getLocalStorageItem_student_list());
@@ -66,11 +65,8 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 	const [amtOfSections, setAmtOfSections] = useState<number>();
 	
 	const [selectedId, setSelectedId] = useState<number | null>(null);
-	const [getFocusId, setGetFocusId] = useState<any | null>(null);
-
 
 	let input_data: InputData = getLocalStorageItem_input();
-
 
 	// References
 	// used to access the DOM element directly like an input field data
@@ -90,35 +86,40 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 			if (!event.target.classList.contains('click')) {
 				console.log('clicked');
 				setSelectedId(null);
-				currPointer.current = getLocalStorageItem_student_list().length - 1;
 			}
 		}
 		document.addEventListener('click', handleClickOutside);
 
 		// Determine which input field to focus on
 		focusInput();
+		selectedId === null && (currPointer.current = student_list.length - 1);
 
 		// Count the number of students and sections
 		let counter_student: number = 0;
 		let total_section: number = 1;
+		let updatedList	= [...student_list];
 		for (let i = 0; i < student_list.length; i++) {
 			student_list[i] === '' ? total_section++ : counter_student++;
+			// Remove empty sections that are next to each other
+			if(student_list[i] === '' && student_list[i + 1] === ''){
+				updatedList.splice(i , 1);
+				setStudentList(updatedList);
+			}
 		}
 		setAmtOfStudents(counter_student);
 		setAmtOfSections(total_section);
+		setLocalStorageItem_student_list(student_list);
 
 		// Cleanup when component unmounts or re-renders
 		return () =>{
 			document.removeEventListener('click', handleClickOutside);
 		};
-	}, [student_list, getFocusId]) //Rerun when student_list length and focus changes
+	}, [student_list, selectedId]) //Rerun when student_list length and focus changes
 
 	const focusInput = () =>{
-		if(getFocusId !== null && focusedInputRef.current[getFocusId]){
+		if(selectedId !== null && focusedInputRef.current[selectedId]){
 			console.log("focused");
-			console.log(getFocusId);
-			console.log(focusedInputRef.current[getFocusId]);
-			focusedInputRef.current[getFocusId].focus();
+			focusedInputRef.current[selectedId].focus();
 		}
 	}
 
@@ -141,44 +142,38 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 				alert("Must have 1+ student name in every section");
 				return;
 			}
-			
 			updatedList.splice(currPointer.current + 1, 0, studentNameInputRef.current.value);
 			setStudentList(updatedList);
-			setLocalStorageItem_student_list(updatedList);
 		}
-
 	}
 
 	const deleteStudent = (index: any) => {
-		let updatedList = [...student_list];
+		let updatedList: string[] = [...student_list];
 		updatedList.splice(index, 1);
 		if(updatedList[0] === ''){
 			updatedList.shift();
 		}
-		console.log(updatedList);
 		setStudentList(updatedList);
-		setLocalStorageItem_student_list(updatedList);
 	}
 
 	const editStudent = (value: any, index: number) => {
 		let updatedList: string[] = [...student_list]; //Shallow copy
 		updatedList[index] = value;
 		setStudentList(updatedList);
-		setLocalStorageItem_student_list(updatedList);
 	}
 
 	// When a student item is selected, add margin-bottom to the selected items
 	const selectStudItem = (index: number) => {
 		console.log('selected')
-		setSelectedId(index);
-		setGetFocusId(index);
-		currPointer.current = index;
-		// Refocus on the input field again if the user clicks on the same item
-		if (index === getFocusId){
-			focusInput();
-		}
-	}
 
+		// Refocus on the input field again if the user clicks on the same item
+		if (index === selectedId){
+			focusInput();
+		}else{
+			setSelectedId(index);
+		}
+		currPointer.current = index;
+	}
 	// **End of Students list functionalities**
 
 
