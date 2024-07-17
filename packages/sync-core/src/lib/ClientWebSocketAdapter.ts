@@ -40,11 +40,13 @@ function debug(...args: any[]) {
 //       pings need to be implemented one level up, on the application API side, which for our
 //       codebase means whatever code that uses ClientWebSocketAdapter.
 
+/** @public */
 export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord> {
 	_ws: WebSocket | null = null
 
 	isDisposed = false
 
+	/** @internal */
 	readonly _reconnectManager: ReconnectManager
 
 	// TODO: .close should be a project-wide interface with a common contract (.close()d thing
@@ -235,7 +237,8 @@ export const DELAY_EXPONENT = 1.5
 // not needlessly reconnecting if the connection is just slow to establish
 export const ATTEMPT_TIMEOUT = 1000
 
-class ReconnectManager {
+/** @internal */
+export class ReconnectManager {
 	private isDisposed = false
 	private disposables: (() => void)[] = [
 		() => {
@@ -311,7 +314,7 @@ class ReconnectManager {
 			)
 
 			this.lastAttemptStart = Date.now()
-			this.socketAdapter._setNewSocket(new WebSocket(uri))
+			this.socketAdapter._setNewSocket(new WebSocket(httpToWs(uri)))
 			this.state = 'pendingAttemptResult'
 		})
 	}
@@ -455,4 +458,8 @@ class ReconnectManager {
 		this.disposables.forEach((d) => d())
 		this.isDisposed = true
 	}
+}
+
+function httpToWs(url: string) {
+	return url.replace(/^http(s)?:/, 'ws$1:')
 }

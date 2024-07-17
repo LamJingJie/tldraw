@@ -12,6 +12,7 @@ import React, {
 } from 'react'
 
 import classNames from 'classnames'
+import { version } from '../version'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
@@ -223,6 +224,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	return (
 		<div
 			ref={setContainer}
+			data-tldraw={version}
 			draggable={false}
 			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
 			onPointerDown={stopEventPropagation}
@@ -497,10 +499,15 @@ export function useOnMount(onMount?: TLOnMountHandler) {
 
 	const onMountEvent = useEvent((editor: Editor) => {
 		let teardown: (() => void) | void = undefined
-		editor.history.ignore(() => {
-			teardown = onMount?.(editor)
-			editor.emit('mount')
-		})
+		// If the user wants to do something when the editor mounts, we make sure it doesn't effect the history.
+		// todo: is this reeeeally what we want to do, or should we leave it up to the caller?
+		editor.run(
+			() => {
+				teardown = onMount?.(editor)
+				editor.emit('mount')
+			},
+			{ history: 'ignore' }
+		)
 		window.tldrawReady = true
 		return teardown
 	})
