@@ -1,5 +1,10 @@
 import { BaseBoxShapeTool, FrameShapeTool, StateNode, TLPointerEvent, TLShapeId, createShapeId } from "tldraw";
-import { getLocalStorageItem_input, InputData } from '../SubTemp/LocalStorage';
+import { 
+    getLocalStorageItem_input, 
+    getLocalStorageItem_student_list, 
+    InputData, 
+    setLocalStorageItem_student_list
+ } from '../SubTemp/LocalStorage';
 
 
 
@@ -20,9 +25,17 @@ export class SubTemplateTool extends StateNode {
     // *Bug: If include parentID prop, the shapes are not created until the main shape is moved once. It will then appear at random areas.
     override onPointerDown = () => {
         const local_storage_data: InputData = getLocalStorageItem_input();
+        const student_list: string[] = getLocalStorageItem_student_list();
+        let amt_of_students_in_list: number = 0;
+        for(let i = 0; i < student_list.length; i++){
+            student_list[i] != "" && (amt_of_students_in_list++);
+        }
+        // Ignore the last element if its empty string 
+        student_list[student_list.length - 1] === '' && (student_list.pop());
 
-        let main_frame_width: number = screen.width;
-        let main_frame_height: number = screen.height;
+        // Default main frame dimensions
+        let main_frame_width: number = 1200;
+        let main_frame_height: number = 900;
         const { currentPagePoint } = this.editor.inputs;
 
 
@@ -34,34 +47,37 @@ export class SubTemplateTool extends StateNode {
         // Padding for description and date
         let padding_for_desc: number = 200
         let padding_per_frame: number = 30;
-        let padding_for_name: number = 40;
+        let padding_for_username: number = 40;
 
         // Dimensions of each submission frame
         let width_of_each_submission: number = 200;
-        let height_of_each_submission: number = 200 * number_of_submissions + padding_for_name;
+        let height_of_each_submission: number = 200 * number_of_submissions + padding_for_username;
 
         // Top left to bottom positioning, leave space for description and date
         let curr_position_subframe_y: number = currentPagePoint.y - (main_frame_height / 2) + padding_for_desc;
         let total_height: number = height_of_each_submission + padding_for_desc + 100;
-        let total_width: number = 0;
 
-        // Create the submission frames
-        for (let i = 0; i < number_of_students; i++) {
+        // Total width of each row and highest width amongst all rows
+        let total_width: number = padding_per_frame;
+        let highest_width: number = padding_per_frame;
 
-            // Left to right positioning
-            let curr_position_subframe_x = (currentPagePoint.x + total_width) - (main_frame_width / 2) + padding_per_frame;
-            total_width += width_of_each_submission + padding_per_frame;
+        //move the main frame and desc by how much to the right based on the highest width
+        let offset: number = 0; 
 
-            // If the total width exceeds the main frame width, move to the next row
-            if (total_width >= main_frame_width) {
+        // For when student list >== number of students
+        for (let i = 0; i < student_list.length; i++) {
+            let curr_position_subframe_x = (currentPagePoint.x + total_width) - (main_frame_width / 2);
+
+            if (student_list[i] === '') {
+                console.log("Next section");
                 total_height += height_of_each_submission + padding_per_frame + 20;
                 curr_position_subframe_y += height_of_each_submission + padding_per_frame + 20; // Move to the next row
-                total_width = 0; // Reset the width
-                curr_position_subframe_x = (currentPagePoint.x + total_width) - (main_frame_width / 2) + padding_per_frame; // Reset the x position
-                total_width += width_of_each_submission + padding_per_frame;
+                total_width > highest_width && (highest_width = total_width);
+                total_width = padding_per_frame; // Reset the width
+                curr_position_subframe_x = (currentPagePoint.x + total_width) - (main_frame_width / 2); // Reset the x position
+                continue;
             }
 
-            // Create the submission frame
             const data = {
                 id: createShapeId(Math.random().toString()),
                 type: 'submission_frame',
@@ -70,14 +86,53 @@ export class SubTemplateTool extends StateNode {
                 props: {
                     w: width_of_each_submission,
                     h: height_of_each_submission,
-                    name: 'test_name 0' + String(i),
+                    name: student_list[i],
                     submissions: number_of_submissions,
                 },
             }
             frame_submissions_data.push(data);
+            total_width += width_of_each_submission + padding_per_frame;
+        }
+        total_width > highest_width && (highest_width = total_width);
+
+        
+
+        // Reset the width and move to the next row
+
+        // Add styling if student list is not empty and there are still students left to be added
+        if(student_list.length !== 0 && number_of_students - amt_of_students_in_list > 0){
+            total_height += height_of_each_submission + padding_per_frame + 20;
+            curr_position_subframe_y += height_of_each_submission + padding_per_frame + 20; // Move to the next row
+            total_width = padding_per_frame;
         }
 
+        // For when student list < number of students
+        // Populate the remaining frames with default names
+        for (let i = 0; i < number_of_students - amt_of_students_in_list; i++) {
+            let curr_position_subframe_x = (currentPagePoint.x + total_width) - (main_frame_width / 2);
+            const data = {
+                id: createShapeId(Math.random().toString()),
+                type: 'submission_frame',
+                x: curr_position_subframe_x,
+                y: curr_position_subframe_y,
+                props: {
+                    w: width_of_each_submission,
+                    h: height_of_each_submission,
+                    name: 'Student ' + String(i + 1),
+                    submissions: number_of_submissions,
+                },
+            }
+            frame_submissions_data.push(data);
+            total_width += width_of_each_submission + padding_per_frame;
+        }
+        total_width > highest_width && (highest_width = total_width);
 
+        // Last check for highest width and get offset to move the main frame and desc
+        if (highest_width > main_frame_width) {
+            offset = (highest_width - main_frame_width) / 2;
+            main_frame_width = highest_width;
+        }
+        
 
         // (2) **Create Description and Date shape**
         // Top right corner
@@ -87,9 +142,10 @@ export class SubTemplateTool extends StateNode {
         const content_data = {
             id: createShapeId(Math.random().toString()),
             type: 'text',
-            x: curr_position_content_x,
+            x: curr_position_content_x + offset,
             opacity: 1,
             y: curr_position_content_y,
+            isLocked: true,
             props: {
                 // text: 'First iteration of site in blender/rhino  ::  DUE 26 MAY (SUNDAY) 2359',
                 text: local_storage_data.description + '  ::  DUE ' + local_storage_data.dueDate,
@@ -109,7 +165,7 @@ export class SubTemplateTool extends StateNode {
         const main_frame = {
             id: frame_template_id,
             type: 'frame',
-            x: currentPagePoint.x - (main_frame_width / 2),
+            x: currentPagePoint.x - (main_frame_width / 2) + offset,
             y: currentPagePoint.y - (main_frame_height / 2),
             props: {
                 w: main_frame_width,

@@ -1,11 +1,15 @@
+import { useEffect } from "react";
 import {
-    BaseBoxShapeUtil, HTMLContainer, ShapeProps, T, TLBaseShape, TLFrameShape, FrameShapeUtil, DefaultColorStyle,
-    ShapeUtil, Rectangle2d, Editor, TLShape, createShapeId, TLAssetId,
+  HTMLContainer, ShapeProps, T, TLBaseShape,
+    ShapeUtil, Rectangle2d, TLShape, 
     resizeBox,
     TLOnResizeHandler,
-    StateNode,
-    TLAsset,
-    TldrawUiInput
+    TldrawUiInput,
+    TLHandle,
+    TLOnClickHandler,
+    Geometry2d,
+    TLShapeId,
+    TLOnHandleDragHandler
 } from "tldraw";
 
 
@@ -18,10 +22,11 @@ type mySubmissionFrameProps = {
 };
 
 type mySubmissionFrameClass = TLBaseShape<'submission_frame', mySubmissionFrameProps>;
+let borderColor: string | null = null;
 
 /**
  * This is the submission frame for each of the students
- */
+**/
 
 export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
 
@@ -29,8 +34,10 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
     override canResize = () => true;
     override isAspectRatioLocked = () => false;
     override canSnap = () => true;
+    override canCrop = () => false;
     override canEdit = () => true;
-    override canDropShapes = () => true;    // Allow any shape to be dropped on the submission_frame shape 
+    override canEditInReadOnly = () => false;
+    override canDropShapes = () => true;   
     override canBind = () => true;         
     override canReceiveNewChildrenOfType = () => true;
 
@@ -40,35 +47,44 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
 
         for (let i = 0; i < shapes.length; i++) {
             if (shapes[i].parentId != frame.id) {
-                this.editor.reparentShapes([shapes[i]], frame.id);
 
                 // Only accept text or images
                 if (shapes[i].type === 'image' || shapes[i].type === 'text') {
-                    this.editor.reparentShapes([shapes[i]], frame.id);
+                    this.editor.reparentShapes([shapes[i]], frame.id);             
 
+                    // snap onto its respective sectors in the submission frame. From top -> bottom
+                    let positioning_x: number = 20;
+                    let positioning_y: number = 60;
+                    if( this.editor.getSortedChildIdsForParent(frame.id).length !== 1 ){
+                        positioning_y+= (frame.props.h - 60) / frame.props.submissions * (this.editor.getSortedChildIdsForParent(frame.id).length - 1);
+                    }
+                    
+                    
                     // Resize the image or text shape
                     this.editor.updateShape({
                         id: shapes[i].id,
                         type: shapes[i].type,
-                        x: frame.x,
-                        y: frame.y,
+                        x: positioning_x,
+                        y: positioning_y + 20,
                         props: {
                             ...shapes[i].props,
-                            w: 170,
-                            h: 170, // Have to change manually here <---
+                            w: frame.props.w - 40,
+                            h: (frame.props.h - 60) / frame.props.submissions - 40, // Dynamic <--
                         },
                     });
 
-                    // Change color of the submission_frame
-                    this.editor.updateShape({
-                        id: frame.id,
-                        type: 'submission_frame',
-                        props: {
-                            ...frame.props, // Keep the other props
-                            filled: true,
-                        }
-                    });
 
+                    if (this.editor.getSortedChildIdsForParent(frame.id).length === frame.props.submissions) {
+                        // Change color of the submission_frame
+                        this.editor.updateShape({
+                            id: frame.id,
+                            type: 'submission_frame',
+                            props: {
+                                ...frame.props, // Keep the other props
+                                filled: true,
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -78,8 +94,8 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
     override onDragShapesOut = (frame: mySubmissionFrameClass, shapes: TLShape[]) => {
         // Change the parentID of that child shape
         this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
-        // Change color if no child is left
-        if (!this.editor.getSortedChildIdsForParent(frame.id).length) {
+        // Change color if child present != submissions
+        if (this.editor.getSortedChildIdsForParent(frame.id).length !== frame.props.submissions) {
             this.editor.updateShape({
                 id: frame.id,
                 type: 'submission_frame',
@@ -111,7 +127,7 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
     }
 
     // Used to calculate shape's geometry for hit-testing, bindings and other geo calculations
-    getGeometry(frame: mySubmissionFrameClass) {
+    getGeometry(frame: mySubmissionFrameClass): Geometry2d {
         return new Rectangle2d({
             width: frame.props.w,
             height: frame.props.h,
@@ -134,7 +150,7 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
     // 3. Takes in array, filters the elements (NOT INDEXES) and returns out new array with index > 0
     // 4. Maps through the new array and creates a divider for each element
     component(submission: mySubmissionFrameClass) {
-        const borderColor = submission.props.filled ? 'green' : 'red';
+        borderColor = submission.props.filled ? 'green' : 'red';
 
         const nameChange = (value: string) => {
             this.editor.updateShape({
@@ -174,8 +190,7 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
                         style={{
                             width: submission.props.w,
                             borderBottom: '2px solid white',
-                            height: (submission.props.h - 40) / submission.props.submissions,
-
+                            height: (submission.props.h - 60) / submission.props.submissions,
                         }}
                     />
                 ))}

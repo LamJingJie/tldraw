@@ -1,4 +1,4 @@
-import { Tldraw, DefaultColorThemePalette, useEditor, Editor, TLGeoShape, createShapeId, AssetRecordType, TLAssetId, TLUiOverrides, useTools, useIsToolSelected, DefaultToolbar, TldrawUiMenuItem, DefaultToolbarContent, TLComponents } from 'tldraw'
+import { Tldraw, DefaultColorThemePalette, useEditor, Editor, TLGeoShape, createShapeId, AssetRecordType, TLAssetId, TLUiOverrides, useTools, useIsToolSelected, DefaultToolbar, TldrawUiMenuItem, DefaultToolbarContent, TLComponents, TldrawImage, ImageShapeUtil } from 'tldraw'
 DefaultColorThemePalette.lightMode.black.solid = 'white'
 import { SubTemplateTool } from '../SubTemp/SubTemplateTool'
 import { components, customAssetUrls,toolsOverride  } from '../SubTemp/ui-overrides'
@@ -14,10 +14,8 @@ function App() {
 	//Intializer
 	const handleMount = (editor: Editor) => {
 		editor_main = editor;
-	
-		/*editor_main.registerExternalContentHandler("files", (data) => {
-			console.log(data);
-		});*/
+
+		
 	}
 
 	return (

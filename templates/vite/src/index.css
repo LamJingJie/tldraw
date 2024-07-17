@@ -68,9 +68,10 @@ button:hover{
 	margin: 0;
 	list-style-type: none;
 	padding: 5px;
-	max-height: 300px;
+	max-height: 400px;
 	overflow-y: auto;
 }
+
 
 .student_item :hover{
 	cursor: pointer;

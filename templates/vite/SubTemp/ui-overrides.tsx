@@ -15,6 +15,8 @@ import {
 	useTools,
 	TLUiStylePanelProps,
 	TldrawUiButton,
+	Editor,
+	TLShapeId,
 } from 'tldraw'
 import { getLocalStorageItem_input, setLocalStorageItem_input, InputData, setLocalStorageItem_student_list, getLocalStorageItem_student_list } from './LocalStorage';
 import React, { useEffect, useState } from 'react';
@@ -53,7 +55,7 @@ export const customAssetUrls: TLUiAssetUrlOverrides = {
 
 
 // Override the context menu with custom content when the custom template tool is selected
-function CustomStylePanel(props: TLUiStylePanelProps) {
+function CustomStylePanel(props: TLUiStylePanelProps, editor: Editor) {
 	const styles = useRelevantStyles();
 	const tools = useTools();
 	const isCustomTemplateSelected = useIsToolSelected(tools['template']);
@@ -67,6 +69,7 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 	const [selectedId, setSelectedId] = useState<number | null>(null);
 
 	let input_data: InputData = getLocalStorageItem_input();
+	
 
 	// References
 	// used to access the DOM element directly like an input field data
@@ -84,7 +87,6 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 		const handleClickOutside = (event: any) => {
 			// Remove styling outside of student item ('click' class)
 			if (!event.target.classList.contains('click')) {
-				console.log('clicked');
 				setSelectedId(null);
 			}
 		}
@@ -101,7 +103,7 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 		for (let i = 0; i < student_list.length; i++) {
 			student_list[i] === '' ? total_section++ : counter_student++;
 			// Remove empty sections that are next to each other
-			if(student_list[i] === '' && student_list[i + 1] === ''){
+			if(i + 1 < student_list.length && student_list[i] === '' && student_list[i + 1] === ''){
 				updatedList.splice(i , 1);
 				setStudentList(updatedList);
 			}
@@ -114,11 +116,12 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 		return () =>{
 			document.removeEventListener('click', handleClickOutside);
 		};
-	}, [student_list, selectedId]) //Rerun when student_list length and focus changes
+	}, [student_list, selectedId]) //Rerun when student_list and selected student id changes
+
 
 	const focusInput = () =>{
 		if(selectedId !== null && focusedInputRef.current[selectedId]){
-			console.log("focused");
+			//console.log("focused");
 			focusedInputRef.current[selectedId].focus();
 		}
 	}
@@ -128,6 +131,7 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 	const seeStudents = () => {
 		setIsStudentShown(!isStudentShown)
 	}
+
 
 	const addStudent = () => {
 		
@@ -139,13 +143,14 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 			let currVal: string = updatedList[currPointer.current];
 			if (((nextVal === '' || currVal === '') && studentNameInputRef.current.value === '') || 
 				(updatedList.length === 0 && studentNameInputRef.current.value === '')){
-				alert("Must have 1+ student name in every section");
+				alert("Must have at least 1 student name in every section");
 				return;
 			}
 			updatedList.splice(currPointer.current + 1, 0, studentNameInputRef.current.value);
 			setStudentList(updatedList);
 		}
 	}
+
 
 	const deleteStudent = (index: any) => {
 		let updatedList: string[] = [...student_list];
@@ -156,15 +161,17 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 		setStudentList(updatedList);
 	}
 
+
 	const editStudent = (value: any, index: number) => {
 		let updatedList: string[] = [...student_list]; //Shallow copy
-		updatedList[index] = value;
+		value === '' ? updatedList.splice(index, 1) : updatedList[index] = value;
 		setStudentList(updatedList);
 	}
 
+
 	// When a student item is selected, add margin-bottom to the selected items
 	const selectStudItem = (index: number) => {
-		console.log('selected')
+		//console.log('selected')
 
 		// Refocus on the input field again if the user clicks on the same item
 		if (index === selectedId){
@@ -205,6 +212,7 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 		setLocalStorageItem_input(input_data);
 	}
 
+
 	// Functional Component (must return anything that can be rendered to the DOM)
 	const StudentListComponent = ({ }) => {
 		const calculateSectionNumber = (index: number): number => {
@@ -218,7 +226,7 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 
 		return (
 			<div style={{ borderTop: '2px solid whitesmoke' }}>
-				<h3 style={{ marginBottom: '0', textAlign: 'center' }}>You have '{amtOfSections}' section(s)</h3>
+				<h3 style={{ marginBottom: '0', textAlign: 'center' }}>You have <b style={{fontSize: '20px'}}>'{amtOfSections}'</b> section(s)</h3>
 				<ul id="student_list">
 					{/* List of students added */}
 					{student_list.map((ele: string, index1: number) => {
@@ -340,7 +348,7 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 									student_list.length > 0 ? (
 										<StudentListComponent />
 									) : (
-										<h3 id="student_list" style={{ textAlign: 'center', borderTop: '2px solid whitesmoke' }}>Empty</h3>
+										<h3 id="student_list" style={{ textAlign: 'center', borderTop: '2px solid whitesmoke' }}>Empty Section 1</h3>
 									)
 								)}
 							</div>
