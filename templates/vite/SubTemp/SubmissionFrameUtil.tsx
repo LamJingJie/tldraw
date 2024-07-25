@@ -60,7 +60,7 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
                     }
                     
                     
-                    // Resize the image or text shape
+                    // Dynamically resize the image or text shape
                     this.editor.updateShape({
                         id: shapes[i].id,
                         type: shapes[i].type,

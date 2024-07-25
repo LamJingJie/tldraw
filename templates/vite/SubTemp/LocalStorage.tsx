@@ -13,8 +13,8 @@ export type InputData = {
 let input_fields: InputData = {
     students: 1,
     submissions: 1,
-    description: '<Description>',
-    dueDate: '<DueDate>',
+    description: 'Description',
+    dueDate: 'DueDate',
 }
 
 
