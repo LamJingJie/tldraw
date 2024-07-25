@@ -1,7 +1,8 @@
 export { ClientWebSocketAdapter, ReconnectManager } from './lib/ClientWebSocketAdapter'
 export { RoomSessionState, type RoomSession } from './lib/RoomSession'
+export type { WebSocketMinimal } from './lib/ServerSocketAdapter'
 export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
-export { TLSocketRoom, type TLSyncLog } from './lib/TLSocketRoom'
+export { TLSocketRoom, type OmitVoid, type TLSyncLog } from './lib/TLSocketRoom'
 export {
 	TLCloseEventCode,
 	TLSyncClient,

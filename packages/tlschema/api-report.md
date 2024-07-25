@@ -161,6 +161,14 @@ export function createTLSchema({ shapes, bindings, migrations, }?: {
 }): TLSchema;
 
 // @public (undocumented)
+export const defaultBindingSchemas: {
+    arrow: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLArrowBinding>;
+    };
+};
+
+// @public (undocumented)
 export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white"];
 
 // @public (undocumented)
@@ -923,7 +931,7 @@ export type TLAssetShape = Extract<TLShape, {
 
 // @public
 export interface TLAssetStore {
-    resolve(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
+    resolve?(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
     upload(asset: TLAsset, file: File): Promise<string>;
 }
 
@@ -1279,7 +1287,7 @@ export interface TLHighlightShapeProps {
 
 // @public
 export type TLImageAsset = TLBaseAsset<'image', {
-    fileSize: number;
+    fileSize?: number;
     h: number;
     isAnimated: boolean;
     mimeType: null | string;
@@ -1627,7 +1635,7 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 // @public (undocumented)
 export interface TLStoreProps {
     // (undocumented)
-    assets: TLAssetStore;
+    assets: Required<TLAssetStore>;
     // (undocumented)
     defaultName: string;
     // (undocumented)
@@ -1672,7 +1680,7 @@ export type TLUnknownShape = TLBaseShape<string, object>;
 
 // @public
 export type TLVideoAsset = TLBaseAsset<'video', {
-    fileSize: number;
+    fileSize?: number;
     h: number;
     isAnimated: boolean;
     mimeType: null | string;
