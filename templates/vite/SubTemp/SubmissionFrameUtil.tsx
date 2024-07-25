@@ -53,23 +53,48 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
                     this.editor.reparentShapes([shapes[i]], frame.id);             
 
                     // snap onto its respective sectors in the submission frame. From top -> bottom
-                    let positioning_x: number = 20;
-                    let positioning_y: number = 60;
+                    let positioning_x: number = 0;
+                    let positioning_y: number = 65;
                     if( this.editor.getSortedChildIdsForParent(frame.id).length !== 1 ){
-                        positioning_y+= (frame.props.h - 60) / frame.props.submissions * (this.editor.getSortedChildIdsForParent(frame.id).length - 1);
+                        positioning_y+= (frame.props.h - 65) / frame.props.submissions * (this.editor.getSortedChildIdsForParent(frame.id).length - 1);
                     }
                     
                     
-                    // Dynamically resize the image or text shape
+                    // Dynamically resize the image or text shape while maintaining aspect ratio
+                    let shapeWidth: number = (shapes[i].props as { w: number }).w;
+                    let shapeHeight: number = (shapes[i].props as { h: number }).h;
+                    let aspectRatio: number = shapeWidth / shapeHeight;
+
+                    let maxWidth: number = frame.props.w;
+                    let maxHeight: number = (frame.props.h - 65) / frame.props.submissions;
+
+                    let offset_x: number = 0;
+                    let offset_y: number = 0;
+                    
+                    // image is horizontal
+                    if (shapeWidth > shapeHeight){
+                        shapeWidth = maxWidth - 20;
+                        shapeHeight = maxWidth / aspectRatio;                        
+                    }
+                    // image is vertical
+                    else if (shapeHeight > shapeWidth){
+                        shapeHeight = maxHeight - 20;
+
+                        // Reverse engineer the aspect ratio formula to get new width with respect to the aspect ratio
+                        shapeWidth = shapeHeight * aspectRatio 
+                    }
+                    offset_y = (maxHeight - shapeHeight) / 2
+                    offset_x = (maxWidth - shapeWidth) / 2
+
                     this.editor.updateShape({
                         id: shapes[i].id,
                         type: shapes[i].type,
-                        x: positioning_x,
-                        y: positioning_y + 20,
+                        x: positioning_x + offset_x,
+                        y: positioning_y + offset_y,
                         props: {
                             ...shapes[i].props,
-                            w: frame.props.w - 40,
-                            h: (frame.props.h - 60) / frame.props.submissions - 40, // Dynamic <--
+                            w: shapeWidth,
+                            h: shapeHeight, // Dynamic <--
                         },
                     });
 

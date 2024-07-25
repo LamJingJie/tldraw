@@ -62,7 +62,7 @@ export class SubTemplateTool extends StateNode {
         let highest_width: number = padding_per_frame;
 
         //move the main frame and desc by how much to the right based on the highest width
-        let offset: number = 0; 
+        let offset_x: number = 0; 
 
         // For when student list >== number of students
         for (let i = 0; i < student_list.length; i++) {
@@ -129,7 +129,7 @@ export class SubTemplateTool extends StateNode {
 
         // Last check for highest width and get offset to move the main frame and desc
         if (highest_width > main_frame_width) {
-            offset = (highest_width - main_frame_width) / 2;
+            offset_x = (highest_width - main_frame_width) / 2;
             main_frame_width = highest_width;
         }
         
@@ -142,7 +142,7 @@ export class SubTemplateTool extends StateNode {
         const content_data = {
             id: createShapeId(Math.random().toString()),
             type: 'text',
-            x: curr_position_content_x + offset,
+            x: curr_position_content_x + offset_x,
             opacity: 1,
             y: curr_position_content_y,
             isLocked: true,
@@ -165,7 +165,7 @@ export class SubTemplateTool extends StateNode {
         const main_frame = {
             id: frame_template_id,
             type: 'frame',
-            x: currentPagePoint.x - (main_frame_width / 2) + offset,
+            x: currentPagePoint.x - (main_frame_width / 2) + offset_x,
             y: currentPagePoint.y - (main_frame_height / 2),
             props: {
                 w: main_frame_width,
