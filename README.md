@@ -12,10 +12,10 @@ This project utilizes REACT and Tldraw library to enable users to create customi
 Tlextractor is utilized to extract data that the student submitted in this template. See [Tlextractor GitHub Repository](https://github.com/LamJingJie/tlextractor) for more information.
 
 #### Before: Have to manually create each shapes and texts
-![Before](/img/pic2.png)
+![Before](../tldraw/templates/vite/SubTemp/img/pic2.png)
 
 #### After: Auto-Generated Template
-![After](/img/pic1.png)
+![After](../tldraw/templates/vite/SubTemp/img/pic1.png)
 
 
 ## <span style="color: #E74C3C;">⚠️ Things to Note</span>
