@@ -1,17 +1,26 @@
+# tldraw
+
+This fork is building upon [tldraw](https://github.com/tldraw/tldraw). tldraw is a library for creating infinite canvas experiences in React. It's the software behind the digital whiteboard [tldraw.com](https://tldraw.com).
+
+
 # <span style="color: #2E86C1;">🎨 Project Submission Template Creator</span>
 
 ## <span style="color: #1ABC9C;">📘 Introduction</span>
 
-This project enables users to create customizable submission templates for others, such as students, to submit their work within designated frames. It's designed to streamline the submission process in educational settings, making it easier for instructors to collect and organize student submissions.
+This project utilizes REACT and Tldraw library to enable users to create customizable submission templates for others, such as students, to submit their work within designated frames. It's designed to streamline the submission process in educational settings, making it easier for instructors to collect and organize student submissions. While maintaining user's freedom of movement.
 
-Tlextractor is utilized to extract data that the student submitted. See <a href="https://github.com/LamJingJie/tlextractor" style="color: #3498DB;">Tlextractor GitHub Repository</a> for more information.
+Tlextractor is utilized to extract data that the student submitted in this template. See [Tlextractor GitHub Repository](https://github.com/LamJingJie/tlextractor) for more information.
 
-![Before: Have to manually create each shapes and texts](/img/pic2.png)
+#### Before: Have to manually create each shapes and texts
+![Before](/img/pic2.png)
 
-![After: Auto-generate template](/img/pic1.png)
+#### After: Auto-Generated Template
+![After](/img/pic1.png)
+
 
 ## <span style="color: #E74C3C;">⚠️ Things to Note</span>
-- <span style="color: #E74C3C;"><b>Main Frame</b></span>: Do not change the main frame name, to allow the script to accurately identify which frame to extract.
+- <span style="color: #E74C3C;"><b>Main Frame</b></span>: Do not change the main/outermost frame name, to allow the script to accurately identify which frame to extract.
+
 
 ## <span style="color: #F39C12;">✨ Features</span>
 
@@ -37,13 +46,28 @@ With additional features:
 
 To use this project, follow these steps:
 
-1. Clone the repository to your local machine.
-2. Navigate to the project directory (/templates/vite/).
-3. Install the required dependencies (yarn).
-4. Run the application - exec "Yarn Dev".
-5. Follow the on-screen instructions to create a submission template.
+1. **Clone the repository to your local machine:**
+	```bash
+   	git clone <repository-url>
+   	```
+
+2. **Navigate to the project directory:**
+	```bash
+	cd /templates/vite/
+	```
+
+3. **Install the required dependencies:**
+	```bash
+	yarn
+	```
+
+4. **Run the application:**
+	```bash
+	yarn dev
+	```
+
+5. **Follow the on-screen instructions to create a submission template.**
 
 ## <span style="color: #2980B9;">🎥 Demo Video</span>
 
-<a href="https://github.com/user-attachments/assets/8d21cb85-782c-42ee-836e-e9bb274c6ec9" target="_blank"><img src="https://github.com/user-attachments/assets/8d21cb85-782c-42ee-836e-e9bb274c6ec9"
-alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
+[![Demo Video](https://github.com/user-attachments/assets/8d21cb85-782c-42ee-836e-e9bb274c6ec9)](https://github.com/user-attachments/assets/8d21cb85-782c-42ee-836e-e9bb274c6ec9)

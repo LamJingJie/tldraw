@@ -1,100 +1,73 @@
 # tldraw
 
-Welcome to the public monorepo for [tldraw](https://github.com/tldraw/tldraw). tldraw is a library for creating infinite canvas experiences in React. It's the software behind the digital whiteboard [tldraw.com](https://tldraw.com).
+This fork is building upon [tldraw](https://github.com/tldraw/tldraw). tldraw is a library for creating infinite canvas experiences in React. It's the software behind the digital whiteboard [tldraw.com](https://tldraw.com).
 
-- Read the docs and learn more at [tldraw.dev](https://tldraw.dev).
-- Learn about [our license](https://github.com/tldraw/tldraw#License).
 
-> 🤵 Interested in purchasing a commercial license for the tldraw SDK?
-> Fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
+# <span style="color: #2E86C1;">🎨 Project Submission Template Creator</span>
 
-## Installation
+## <span style="color: #1ABC9C;">📘 Introduction</span>
 
-```bash
-npm i tldraw
-```
+This project utilizes REACT and Tldraw library to enable users to create customizable submission templates for others, such as students, to submit their work within designated frames. It's designed to streamline the submission process in educational settings, making it easier for instructors to collect and organize student submissions. While maintaining user's freedom of movement.
 
-## Usage
+Tlextractor is utilized to extract data that the student submitted in this template. See [Tlextractor GitHub Repository](https://github.com/LamJingJie/tlextractor) for more information.
 
-```tsx
-import { Tldraw } from 'tldraw'
-import 'tldraw/tldraw.css'
+#### Before: Have to manually create each shapes and texts
+![Before](/img/pic2.png)
 
-export default function App() {
-	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw />
-		</div>
-	)
-}
-```
+#### After: Auto-Generated Template
+![After](/img/pic1.png)
 
-Learn more at [tldraw.dev](https://tldraw.dev).
 
-## Local development
+## <span style="color: #E74C3C;">⚠️ Things to Note</span>
+- <span style="color: #E74C3C;"><b>Main Frame</b></span>: Do not change the main/outermost frame name, to allow the script to accurately identify which frame to extract.
 
-The local development server will run our examples app. The basic example will show any changes you've made to the codebase.
 
-To run the local development server, first clone this repo.
+## <span style="color: #F39C12;">✨ Features</span>
 
-Enable [corepack](https://nodejs.org/api/corepack.html) to make sure you have the right version of `yarn`:
+With this tool, users can specify:
 
-```bash
-corepack enable
-```
+- <span style="color: #27AE60;"><b>Description</b></span>: A brief overview of the submission requirements.
+- <span style="color: #27AE60;"><b>Due Date</b></span>: The deadline for submissions.
+- <span style="color: #27AE60;"><b>Submissions Per Student</b></span>: How many submissions each student is allowed to make.
+- <span style="color: #27AE60;"><b>Number of Students</b></span>: The total number of students expected to submit work.
+- <span style="color: #27AE60;"><b>Names of Each Student</b></span>: Individual names for each student's submission frame.
 
-Install dependencies:
+With additional features:
+- <span style="color: #27AE60;"><b>Image Snapping</b></span>: Users can throw in their img into their respective frame and it will snap dynamically.
+- <span style="color: #27AE60;"><b>Color Changing</b></span>: Colour in the frames changes depending on submission status.
 
-```bash
-yarn
-```
+### <span style="color: #D35400;">🔄 Conditional Frame Creation</span>
 
-Start the local development server:
+- <span style="color: #E67E22;"><b>More Student Names than Student Amt</b></span>: If the number of names inputted exceeds the specified number of students, the application will create a frame for each name provided, ignoring the "Number of Students" setting.
+- <span style="color: #E67E22;"><b>Equal Students Names and Student Amt</b></span>: If the number of names matches the number of students, a frame will be created for each student.
+- <span style="color: #E67E22;"><b>Less Student Names than Student Amt</b></span>: When fewer names are provided than the number of students, frames will be created for each name. Subsequent frames without specific names will be assigned default names.
 
-```bash
-yarn dev
-```
+## <span style="color: #8E44AD;">🚀 Getting Started</span>
 
-Open the example project at `localhost:5420`.
+To use this project, follow these steps:
 
-## License
+1. **Clone the repository to your local machine:**
+	```bash
+   	git clone <repository-url>
+   	```
 
-The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). This license does not permit commercial use. To purchase a commercial license or learn more, please fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
+2. **Navigate to the project directory:**
+	```bash
+	cd /templates/vite/
+	```
 
-## Trademarks
+3. **Install the required dependencies:**
+	```bash
+	yarn
+	```
 
-Copyright (c) 2023-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
+4. **Run the application:**
+	```bash
+	yarn dev
+	```
 
-## Contact
+5. **Follow the on-screen instructions to create a submission template.**
 
-Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
+## <span style="color: #2980B9;">🎥 Demo Video</span>
 
-## Community
-
-Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, check out our [Substack](https://tldraw.substack.com/).
-
-## Contribution
-
-Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
-
-## Contributors
-
-<a href="https://github.com/tldraw/tldraw/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=tldraw/tldraw&max=400&columns=20" width="100%"/>
-</a>
-
-## Star History
-
-<a href="https://star-history.com/#tldraw/tldraw">
-	<picture>
-	  <source
-	    media="(prefers-color-scheme: dark)"
-	    srcset="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date&theme=dark"
-	  />
-	  <source
-	    media="(prefers-color-scheme: light)"
-	    srcset="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date"
-	  />
-	  <img src="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date" alt="Star History Chart" width="100%" />
-	</picture>
-</a>
+[![Demo Video](https://github.com/user-attachments/assets/8d21cb85-782c-42ee-836e-e9bb274c6ec9)](https://github.com/user-attachments/assets/8d21cb85-782c-42ee-836e-e9bb274c6ec9)
