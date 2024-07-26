@@ -1,41 +1,49 @@
-# Project Submission Template Creator
+# <span style="color: #2E86C1;">🎨 Project Submission Template Creator</span>
 
-## Introduction
+## <span style="color: #1ABC9C;">📘 Introduction</span>
 
 This project enables users to create customizable submission templates for others, such as students, to submit their work within designated frames. It's designed to streamline the submission process in educational settings, making it easier for instructors to collect and organize student submissions.
 
-## Thinks to note
-- **Main Frame**: Do not change the main frame name, to allow the script to acurately identify which frame to extract 
+Tlextractor is utilized to extract data that the student submitted. See <a href="https://github.com/LamJingJie/tlextractor" style="color: #3498DB;">Tlextractor GitHub Repository</a> for more information.
 
-## Features
+![Before: Have to manually create each shapes and texts](/img/pic2.png)
+
+![After: Auto-generate template](/img/pic1.png)
+
+## <span style="color: #E74C3C;">⚠️ Things to Note</span>
+- <span style="color: #E74C3C;"><b>Main Frame</b></span>: Do not change the main frame name, to allow the script to accurately identify which frame to extract.
+
+## <span style="color: #F39C12;">✨ Features</span>
 
 With this tool, users can specify:
 
-- **Description**: A brief overview of the submission requirements.
-- **Due Date**: The deadline for submissions.
-- **Submissions Per Student**: How many submissions each student is allowed to make.
-- **Number of Students**: The total number of students expected to submit work.
-- **Names of Each Student**: Individual names for each student's submission frame.
+- <span style="color: #27AE60;"><b>Description</b></span>: A brief overview of the submission requirements.
+- <span style="color: #27AE60;"><b>Due Date</b></span>: The deadline for submissions.
+- <span style="color: #27AE60;"><b>Submissions Per Student</b></span>: How many submissions each student is allowed to make.
+- <span style="color: #27AE60;"><b>Number of Students</b></span>: The total number of students expected to submit work.
+- <span style="color: #27AE60;"><b>Names of Each Student</b></span>: Individual names for each student's submission frame.
 
-- **Image Snapping**: Users can throw in their img into their respective frame and it will snap dynamically
-- **Color Changing**: Colour in the frames changes depending on submission status
+With additional features:
+- <span style="color: #27AE60;"><b>Image Snapping</b></span>: Users can throw in their img into their respective frame and it will snap dynamically.
+- <span style="color: #27AE60;"><b>Color Changing</b></span>: Colour in the frames changes depending on submission status.
 
-### Conditional Frame Creation
+### <span style="color: #D35400;">🔄 Conditional Frame Creation</span>
 
-- **More Student Names than Student Amt**: If the number of names inputted exceeds the specified number of students, the application will create a frame for each name provided, ignoring the "Number of Students" setting.
-- **Equal Students Names and Student Amt**: If the number of names matches the number of students, a frame will be created for each student.
-- **Less Student Names than Student Amt**: When fewer names are provided than the number of students, frames will be created for each name. Subsequent frames without specific names will be assigned default names.
+- <span style="color: #E67E22;"><b>More Student Names than Student Amt</b></span>: If the number of names inputted exceeds the specified number of students, the application will create a frame for each name provided, ignoring the "Number of Students" setting.
+- <span style="color: #E67E22;"><b>Equal Students Names and Student Amt</b></span>: If the number of names matches the number of students, a frame will be created for each student.
+- <span style="color: #E67E22;"><b>Less Student Names than Student Amt</b></span>: When fewer names are provided than the number of students, frames will be created for each name. Subsequent frames without specific names will be assigned default names.
 
-## Getting Started
+## <span style="color: #8E44AD;">🚀 Getting Started</span>
 
 To use this project, follow these steps:
 
 1. Clone the repository to your local machine.
 2. Navigate to the project directory.
 3. Install the required dependencies.
-4. Run the application.
+4. Run the application - exec "Yarn Dev".
 5. Follow the on-screen instructions to create a submission template.
 
-## License
+## <span style="color: #2980B9;">🎥 Demo Video</span>
 
-Distributed under the MIT License. See `LICENSE` for more information.
+<a href="https://github.com/user-attachments/assets/8d21cb85-782c-42ee-836e-e9bb274c6ec9" target="_blank"><img src="https://github.com/user-attachments/assets/8d21cb85-782c-42ee-836e-e9bb274c6ec9"
+alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>

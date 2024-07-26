@@ -83,9 +83,12 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
                         // Reverse engineer the aspect ratio formula to get new width with respect to the aspect ratio
                         shapeWidth = shapeHeight * aspectRatio 
                     }
+
+                    // Center the image or text shape
                     offset_y = (maxHeight - shapeHeight) / 2
                     offset_x = (maxWidth - shapeWidth) / 2
 
+                    // Image or text shape is resized and repositioned
                     this.editor.updateShape({
                         id: shapes[i].id,
                         type: shapes[i].type,
