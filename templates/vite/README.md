@@ -38,8 +38,8 @@ With additional features:
 To use this project, follow these steps:
 
 1. Clone the repository to your local machine.
-2. Navigate to the project directory.
-3. Install the required dependencies.
+2. Navigate to the project directory (/templates/vite/).
+3. Install the required dependencies (yarn).
 4. Run the application - exec "Yarn Dev".
 5. Follow the on-screen instructions to create a submission template.
 
