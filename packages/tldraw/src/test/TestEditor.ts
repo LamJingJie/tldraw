@@ -21,6 +21,7 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TLStoreOptions,
 	TLWheelEventInfo,
 	Vec,
 	VecLike,
@@ -28,11 +29,14 @@ import {
 	computed,
 	createShapeId,
 	createTLStore,
+	isAccelKey,
 	rotateSelectionHandle,
+	tlenv,
 } from '@tldraw/editor'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
+import { registerDefaultSideEffects } from '../lib/defaultSideEffects'
 import { defaultTools } from '../lib/defaultTools'
 import { shapesFromJsx } from './test-jsx'
 
@@ -60,9 +64,27 @@ declare global {
 }
 
 export class TestEditor extends Editor {
-	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
+	constructor(
+		options: Partial<Omit<TLEditorOptions, 'store'>> = {},
+		storeOptions: Partial<TLStoreOptions> = {}
+	) {
 		const elm = document.createElement('div')
+		const bounds = {
+			x: 0,
+			y: 0,
+			top: 0,
+			left: 0,
+			width: 1080,
+			height: 720,
+			bottom: 720,
+			right: 1080,
+		}
+		// make the app full screen for the sake of the insets property
+		jest.spyOn(document.body, 'scrollWidth', 'get').mockImplementation(() => bounds.width)
+		jest.spyOn(document.body, 'scrollHeight', 'get').mockImplementation(() => bounds.height)
+
 		elm.tabIndex = 0
+		elm.getBoundingClientRect = () => bounds as DOMRect
 
 		const shapeUtilsWithDefaults = [...defaultShapeUtils, ...(options.shapeUtils ?? [])]
 		const bindingUtilsWithDefaults = [...defaultBindingUtils, ...(options.bindingUtils ?? [])]
@@ -75,14 +97,15 @@ export class TestEditor extends Editor {
 			store: createTLStore({
 				shapeUtils: shapeUtilsWithDefaults,
 				bindingUtils: bindingUtilsWithDefaults,
+				...storeOptions,
 			}),
 			getContainer: () => elm,
 			initialState: 'select',
 		})
+		this.elm = elm
+		this.bounds = bounds
 
 		// Pretty hacky way to mock the screen bounds
-		this.elm = elm
-		this.elm.getBoundingClientRect = () => this.bounds as DOMRect
 		document.body.appendChild(this.elm)
 
 		this.textMeasure.measureText = (
@@ -129,6 +152,9 @@ export class TestEditor extends Editor {
 		this.sideEffects.registerAfterCreateHandler('shape', (record) => {
 			this._lastCreatedShapes.push(record)
 		})
+
+		// Wow! we'd forgotten these for a long time
+		registerDefaultSideEffects(this)
 	}
 
 	getHistory() {
@@ -154,8 +180,17 @@ export class TestEditor extends Editor {
 		return this.getShape<T>(lastShape)!
 	}
 
-	elm: HTMLDivElement
-	bounds = { x: 0, y: 0, top: 0, left: 0, width: 1080, height: 720, bottom: 720, right: 1080 }
+	elm: HTMLElement
+	readonly bounds: {
+		x: number
+		y: number
+		top: number
+		left: number
+		width: number
+		height: number
+		bottom: number
+		right: number
+	}
 
 	/**
 	 * The center of the viewport in the current page space.
@@ -312,6 +347,8 @@ export class TestEditor extends Editor {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey({ ...this.inputs, ...modifiers }),
 			point: { x, y, z: null },
 			button: 0,
 			isPen: false,
@@ -329,6 +366,8 @@ export class TestEditor extends Editor {
 			shiftKey: key === 'Shift',
 			ctrlKey: key === 'Control' || key === 'Meta',
 			altKey: key === 'Alt',
+			metaKey: key === 'Meta',
+			accelKey: tlenv.isDarwin ? key === 'Meta' : key === 'Control' || key === 'Meta',
 			...options,
 			name,
 			code:
@@ -336,17 +375,19 @@ export class TestEditor extends Editor {
 					? 'ShiftLeft'
 					: key === 'Alt'
 						? 'AltLeft'
-						: key === 'Control' || key === 'Meta'
+						: key === 'Control'
 							? 'CtrlLeft'
-							: key === ' '
-								? 'Space'
-								: key === 'Enter' ||
-									  key === 'ArrowRight' ||
-									  key === 'ArrowLeft' ||
-									  key === 'ArrowUp' ||
-									  key === 'ArrowDown'
-									? key
-									: 'Key' + key[0].toUpperCase() + key.slice(1),
+							: key === 'Meta'
+								? 'MetaLeft'
+								: key === ' '
+									? 'Space'
+									: key === 'Enter' ||
+										  key === 'ArrowRight' ||
+										  key === 'ArrowLeft' ||
+										  key === 'ArrowUp' ||
+										  key === 'ArrowDown'
+										? key
+										: 'Key' + key[0].toUpperCase() + key.slice(1),
 			type: 'keyboard',
 			key,
 		}
@@ -473,6 +514,7 @@ export class TestEditor extends Editor {
 				shiftKey: this.inputs.shiftKey && key !== 'Shift',
 				ctrlKey: this.inputs.ctrlKey && !(key === 'Control' || key === 'Meta'),
 				altKey: this.inputs.altKey && key !== 'Alt',
+				metaKey: this.inputs.metaKey && key !== 'Meta',
 				...options,
 			}),
 		}).forceTick()
@@ -487,6 +529,8 @@ export class TestEditor extends Editor {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			...options,
 			delta: { x: dx, y: dy },
 		}).forceTick(2)
@@ -518,6 +562,8 @@ export class TestEditor extends Editor {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
@@ -540,6 +586,8 @@ export class TestEditor extends Editor {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
@@ -562,6 +610,8 @@ export class TestEditor extends Editor {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
@@ -667,7 +717,8 @@ export class TestEditor extends Editor {
 	createShapesFromJsx(
 		shapesJsx: React.JSX.Element | React.JSX.Element[]
 	): Record<string, TLShapeId> {
-		const { shapes, ids } = shapesFromJsx(shapesJsx)
+		const { shapes, assets, ids } = shapesFromJsx(shapesJsx)
+		this.createAssets(assets)
 		this.createShapes(shapes)
 		return ids
 	}

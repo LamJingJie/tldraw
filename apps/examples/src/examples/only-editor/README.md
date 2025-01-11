@@ -1,6 +1,6 @@
 ---
 title: Minimal
-component: ./OnlyEditor.tsx
+component: ./OnlyEditorExample.tsx
 category: editor-api
 priority: 3
 keywords: [select, tool, editor, bare, bones]
@@ -10,4 +10,4 @@ Use the `<TldrawEditor/>` component to render a bare-bones editor with minimal b
 
 ---
 
-This example show show the `<TldrawEditor/>` component can be used to render a bare-bones editor. It uses minimal built-in shapes and tools.
+This example shows how the `<TldrawEditor/>` component can be used to render a bare-bones editor. It uses minimal built-in shapes and tools.

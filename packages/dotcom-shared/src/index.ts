@@ -1,3 +1,5 @@
+/* eslint-disable local/no-export-star */
+export * from './OptimisticAppStore'
 export { default as getLicenseKey } from './license'
 export {
 	READ_ONLY_LEGACY_PREFIX,
@@ -8,10 +10,5 @@ export {
 	SNAPSHOT_PREFIX,
 	type RoomOpenMode,
 } from './routes'
-export type {
-	CreateRoomRequestBody,
-	CreateSnapshotRequestBody,
-	CreateSnapshotResponseBody,
-	GetReadonlySlugResponseBody,
-	Snapshot,
-} from './types'
+export * from './tlaSchema'
+export * from './types'

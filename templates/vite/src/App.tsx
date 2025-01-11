@@ -14,10 +14,8 @@ function App() {
 	//Intializer
 	const handleMount = (editor: Editor) => {
 		editor_main = editor;
-
-		
 	}
-
+	
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw 

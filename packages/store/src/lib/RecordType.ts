@@ -1,5 +1,4 @@
-import { objectMapEntries, structuredClone } from '@tldraw/utils'
-import { nanoid } from 'nanoid'
+import { Expand, objectMapEntries, structuredClone, uniqueId } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { StoreValidator } from './Store'
 
@@ -71,7 +70,9 @@ export class RecordType<
 	 * @param properties - The properties of the record.
 	 * @returns The new record.
 	 */
-	create(properties: Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>): R {
+	create(
+		properties: Expand<Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>>
+	): R {
 		const result = { ...this.createDefaultProperties(), id: this.createId() } as any
 
 		for (const [k, v] of Object.entries(properties)) {
@@ -109,7 +110,7 @@ export class RecordType<
 	 * @public
 	 */
 	createId(customUniquePart?: string): IdOf<R> {
-		return (this.typeName + ':' + (customUniquePart ?? nanoid())) as IdOf<R>
+		return (this.typeName + ':' + (customUniquePart ?? uniqueId())) as IdOf<R>
 	}
 
 	/**
@@ -191,7 +192,7 @@ export class RecordType<
 	 * const deadAuthorType = authorType.withDefaultProperties({ living: false })
 	 * ```
 	 *
-	 * @param fn - A function that returns the default properties of the new RecordType.
+	 * @param createDefaultProperties - A function that returns the default properties of the new RecordType.
 	 * @returns The new RecordType.
 	 */
 	withDefaultProperties<DefaultProps extends Omit<Partial<R>, 'typeName' | 'id'>>(

@@ -1,19 +1,21 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { useMaybeEditor, useValue } from '@tldraw/editor'
 
-export function useIsMultiplayer() {
-	const editor = useEditor()
-	return !!editor.store.props.multiplayerStatus
+/** @public */
+export function useShowCollaborationUi() {
+	const editor = useMaybeEditor()
+	return editor?.store.props.collaboration !== undefined
 }
 
-export function useMultiplayerStatus() {
-	const editor = useEditor()
+/** @public */
+export function useCollaborationStatus() {
+	const editor = useMaybeEditor()
 	return useValue(
-		'multiplayerStatus',
+		'sync status',
 		() => {
-			if (!editor.store.props.multiplayerStatus) {
+			if (!editor?.store.props.collaboration?.status) {
 				return null
 			}
-			return editor.store.props.multiplayerStatus.get()
+			return editor.store.props.collaboration.status.get()
 		},
 		[editor]
 	)

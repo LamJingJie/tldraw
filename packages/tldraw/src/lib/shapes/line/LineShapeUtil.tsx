@@ -21,6 +21,7 @@ import {
 	lineShapeMigrations,
 	lineShapeProps,
 	mapObjectMapValues,
+	maybeSnapToGrid,
 	sortByIndex,
 } from '@tldraw/editor'
 
@@ -117,17 +118,44 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		}
 	}
 
+	override onBeforeCreate(next: TLLineShape): void | TLLineShape {
+		const {
+			props: { points },
+		} = next
+		const pointKeys = Object.keys(points)
+
+		if (pointKeys.length < 2) {
+			return
+		}
+
+		const firstPoint = points[pointKeys[0]]
+		const allSame = pointKeys.every((key) => {
+			const point = points[key]
+			return point.x === firstPoint.x && point.y === firstPoint.y
+		})
+		if (allSame) {
+			const lastKey = pointKeys[pointKeys.length - 1]
+			points[lastKey] = {
+				...points[lastKey],
+				x: points[lastKey].x + 0.1,
+				y: points[lastKey].y + 0.1,
+			}
+			return next
+		}
+		return
+	}
+
 	override onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>) {
 		// we should only ever be dragging vertex handles
 		if (handle.type !== 'vertex') return
-
+		const newPoint = maybeSnapToGrid(new Vec(handle.x, handle.y), this.editor)
 		return {
 			...shape,
 			props: {
 				...shape.props,
 				points: {
 					...shape.props.points,
-					[handle.id]: { id: handle.id, index: handle.index, x: handle.x, y: handle.y },
+					[handle.id]: { id: handle.id, index: handle.index, x: newPoint.x, y: newPoint.y },
 				},
 			},
 		}
@@ -135,7 +163,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	component(shape: TLLineShape) {
 		return (
-			<SVGContainer id={shape.id}>
+			<SVGContainer>
 				<LineShapeSvg shape={shape} />
 			</SVGContainer>
 		)

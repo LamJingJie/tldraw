@@ -1,29 +1,15 @@
+import { mockUniqueId } from '@tldraw/editor'
 import { readdirSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 import { TestEditor } from '../../../../test/TestEditor'
 import { pasteExcalidrawContent } from './pasteExcalidrawContent'
 
-jest.mock('nanoid', () => {
-	let nextNanoId = 0
-
-	const nanoid = () => {
-		nextNanoId++
-		return `${nextNanoId}`
-	}
-
-	return {
-		nanoid,
-		default: nanoid,
-		__reset: () => {
-			nextNanoId = 0
-		},
-	}
-})
+let nextNanoId = 0
+mockUniqueId(() => `${++nextNanoId}`)
 
 beforeEach(() => {
-	// eslint-disable-next-line
-	require('nanoid').__reset()
+	nextNanoId = 0
 })
 
 describe('pasteExcalidrawContent test fixtures', () => {
@@ -36,6 +22,7 @@ describe('pasteExcalidrawContent test fixtures', () => {
 		const fileContent = JSON.parse(await readFile(filePath, 'utf-8'))
 
 		const editor = new TestEditor()
+
 		pasteExcalidrawContent(editor, fileContent)
 
 		expect(editor.store.serialize()).toMatchSnapshot()

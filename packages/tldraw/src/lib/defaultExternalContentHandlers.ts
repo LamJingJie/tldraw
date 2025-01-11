@@ -20,11 +20,12 @@ import {
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
+import { EmbedDefinition } from './defaultEmbedDefinitions'
+import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
-import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /** @public */
@@ -63,7 +64,7 @@ export function registerDefaultExternalContentHandlers(
 	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
 	// files -> asset
-	editor.registerExternalAssetHandler('file', async ({ file }) => {
+	editor.registerExternalAssetHandler('file', async ({ file, assetId }) => {
 		const isImageType = acceptedImageMimeTypes.includes(file.type)
 		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
 
@@ -86,8 +87,8 @@ export function registerDefaultExternalContentHandlers(
 			`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
 		)
 
-		const hash = await getHashForBuffer(await file.arrayBuffer())
-		const assetId: TLAssetId = AssetRecordType.createId(hash)
+		const hash = getHashForBuffer(await file.arrayBuffer())
+		assetId = assetId ?? AssetRecordType.createId(hash)
 		const assetInfo = await getMediaAssetInfoPartial(file, assetId, isImageType, isVideoType)
 
 		if (isFinite(maxImageDimension)) {
@@ -192,31 +193,34 @@ export function registerDefaultExternalContentHandlers(
 	})
 
 	// embeds
-	editor.registerExternalContentHandler('embed', ({ point, url, embed }) => {
-		const position =
-			point ??
-			(editor.inputs.shiftKey
-				? editor.inputs.currentPagePoint
-				: editor.getViewportPageBounds().center)
+	editor.registerExternalContentHandler<'embed', EmbedDefinition>(
+		'embed',
+		({ point, url, embed }) => {
+			const position =
+				point ??
+				(editor.inputs.shiftKey
+					? editor.inputs.currentPagePoint
+					: editor.getViewportPageBounds().center)
 
-		const { width, height } = embed
+			const { width, height } = embed
 
-		const id = createShapeId()
+			const id = createShapeId()
 
-		const shapePartial: TLShapePartial<TLEmbedShape> = {
-			id,
-			type: 'embed',
-			x: position.x - (width || 450) / 2,
-			y: position.y - (height || 450) / 2,
-			props: {
-				w: width,
-				h: height,
-				url,
-			},
+			const shapePartial: TLShapePartial<TLEmbedShape> = {
+				id,
+				type: 'embed',
+				x: position.x - (width || 450) / 2,
+				y: position.y - (height || 450) / 2,
+				props: {
+					w: width,
+					h: height,
+					url,
+				},
+			}
+
+			editor.createShapes([shapePartial]).select(id)
 		}
-
-		editor.createShapes([shapePartial]).select(id)
-	})
+	)
 
 	// files
 	editor.registerExternalContentHandler('files', async ({ point, files }) => {
@@ -231,7 +235,6 @@ export function registerDefaultExternalContentHandlers(
 				: editor.getViewportPageBounds().center)
 
 		const pagePoint = new Vec(position.x, position.y)
-		const assets: TLAsset[] = []
 		const assetsToUpdate: {
 			asset: TLAsset
 			file: File
@@ -271,24 +274,24 @@ export function registerDefaultExternalContentHandlers(
 					severity: 'error',
 				})
 
-				console.warn(`${file.name} not loaded - Extension not allowed.`)
+				console.warn(`${file.name} not loaded - Mime type not allowed ${file.type}.`)
 				continue
 			}
 
 			const isImageType = acceptedImageMimeTypes.includes(file.type)
 			const isVideoType = acceptedVideoMimeTypes.includes(file.type)
-			const hash = await getHashForBuffer(await file.arrayBuffer())
+			const hash = getHashForBuffer(await file.arrayBuffer())
 			const assetId: TLAssetId = AssetRecordType.createId(hash)
 			const assetInfo = await getMediaAssetInfoPartial(file, assetId, isImageType, isVideoType)
 			let temporaryAssetPreview
 			if (isImageType) {
 				temporaryAssetPreview = editor.createTemporaryAssetPreview(assetId, file)
 			}
-			assets.push(assetInfo)
 			assetsToUpdate.push({ asset: assetInfo, file, temporaryAssetPreview })
 		}
 
-		Promise.allSettled(
+		const assets: TLAsset[] = []
+		await Promise.allSettled(
 			assetsToUpdate.map(async (assetAndFile) => {
 				try {
 					const newAsset = await editor.getAssetForExternalContent({
@@ -300,8 +303,10 @@ export function registerDefaultExternalContentHandlers(
 						throw Error('Could not create an asset')
 					}
 
+					const updated = { ...newAsset, id: assetAndFile.asset.id }
+					assets.push(updated)
 					// Save the new asset under the old asset's id
-					editor.updateAssets([{ ...newAsset, id: assetAndFile.asset.id }])
+					editor.updateAssets([updated])
 				} catch (error) {
 					toasts.addToast({
 						title: msg('assets.files.upload-failed'),
@@ -413,7 +418,8 @@ export function registerDefaultExternalContentHandlers(
 	// url
 	editor.registerExternalContentHandler('url', async ({ point, url }) => {
 		// try to paste as an embed first
-		const embedInfo = getEmbedInfo(url)
+		const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
+		const embedInfo = embedUtil?.getEmbedDefinition(url)
 
 		if (embedInfo) {
 			return editor.putExternalContent({
@@ -442,7 +448,7 @@ export function registerDefaultExternalContentHandlers(
 				const bookmarkAsset = await editor.getAssetForExternalContent({ type: 'url', url })
 				if (!bookmarkAsset) throw Error('Could not create an asset')
 				asset = bookmarkAsset
-			} catch (e) {
+			} catch {
 				toasts.addToast({
 					title: msg('assets.url.failed'),
 					severity: 'error',
@@ -617,11 +623,29 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 			})
 		)
 	}
-
+	selectionPageBounds = editor.getSelectionPageBounds()
+	// align selection with the grid if necessary
+	if (selectionPageBounds && editor.getInstanceState().isGridMode) {
+		const gridSize = editor.getDocumentSettings().gridSize
+		const topLeft = new Vec(selectionPageBounds.minX, selectionPageBounds.minY)
+		const gridSnappedPoint = topLeft.clone().snapToGrid(gridSize)
+		const delta = Vec.Sub(topLeft, gridSnappedPoint)
+		editor.updateShapes(
+			editor.getSelectedShapes().map((shape) => {
+				const newPoint = { x: shape.x! - delta.x, y: shape.y! - delta.y }
+				return {
+					id: shape.id,
+					type: shape.type,
+					x: newPoint.x,
+					y: newPoint.y,
+				}
+			})
+		)
+	}
 	// Zoom out to fit the shapes, if necessary
 	selectionPageBounds = editor.getSelectionPageBounds()
 	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-		editor.zoomToSelection()
+		editor.zoomToSelection({ animation: { duration: editor.options.animationMediumMs } })
 	}
 }
 

@@ -1,9 +1,11 @@
 import {
+	Box,
 	RotateCorner,
 	TLEmbedShape,
 	TLSelectionForegroundProps,
 	TLTextShape,
 	getCursor,
+	tlenv,
 	toDomPrecision,
 	track,
 	useEditor,
@@ -34,8 +36,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 	const bottomRightEvents = useSelectionEvents('bottom_right')
 	const bottomLeftEvents = useSelectionEvents('bottom_left')
 
-	const isDefaultCursor =
-		!editor.getIsMenuOpen() && editor.getInstanceState().cursor.type === 'default'
+	const isDefaultCursor = editor.getInstanceState().cursor.type === 'default'
 	const isCoarsePointer = editor.getInstanceState().isCoarsePointer
 
 	const onlyShape = editor.getOnlySelectedShape()
@@ -46,19 +47,23 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 		? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
 		: 0
 
+	const expandedBounds =
+		expandOutlineBy instanceof Box
+			? bounds.clone().expand(expandOutlineBy).zeroFix()
+			: bounds.clone().expandBy(expandOutlineBy).zeroFix()
+
 	useTransform(rSvg, bounds?.x, bounds?.y, 1, editor.getSelectionRotation(), {
-		x: -expandOutlineBy,
-		y: -expandOutlineBy,
+		x: expandedBounds.x - bounds.x,
+		y: expandedBounds.y - bounds.y,
 	})
 
-	if (!bounds) return null
-	bounds = bounds.clone().expandBy(expandOutlineBy).zeroFix()
+	if (onlyShape && editor.isShapeHidden(onlyShape)) return null
 
 	const zoom = editor.getZoomLevel()
 	const isChangingStyle = editor.getInstanceState().isChangingStyle
 
-	const width = bounds.width
-	const height = bounds.height
+	const width = expandedBounds.width
+	const height = expandedBounds.height
 
 	const size = 8 / zoom
 	const isTinyX = width < size * 2
@@ -99,7 +104,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 			editor.isShapeOfType<TLTextShape>(onlyShape, 'text'))
 
 	if (onlyShape && shouldDisplayBox) {
-		if (editor.environment.isFirefox && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
+		if (tlenv.isFirefox && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
 			shouldDisplayBox = false
 		}
 	}

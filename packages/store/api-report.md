@@ -6,6 +6,7 @@
 
 import { Atom } from '@tldraw/state';
 import { Computed } from '@tldraw/state';
+import { Expand } from '@tldraw/utils';
 import { Result } from '@tldraw/utils';
 
 // @public
@@ -250,7 +251,7 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
         readonly validator?: StoreValidator<R>;
     });
     clone(record: R): R;
-    create(properties: Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>): R;
+    create(properties: Expand<Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>>): R;
     // @deprecated
     createCustomId(id: string): IdOf<R>;
     // (undocumented)
@@ -536,13 +537,7 @@ export interface StoreSchemaOptions<R extends UnknownRecord, P> {
     // (undocumented)
     migrations?: MigrationSequence[];
     // (undocumented)
-    onValidationFailure?(data: {
-        error: unknown;
-        phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
-        record: R;
-        recordBefore: null | R;
-        store: Store<R>;
-    }): R;
+    onValidationFailure?(data: StoreValidationFailure<R>): R;
 }
 
 // @public
@@ -604,6 +599,20 @@ export interface StoreSnapshot<R extends UnknownRecord> {
     schema: SerializedSchema;
     // (undocumented)
     store: SerializedStore<R>;
+}
+
+// @public (undocumented)
+export interface StoreValidationFailure<R extends UnknownRecord> {
+    // (undocumented)
+    error: unknown;
+    // (undocumented)
+    phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
+    // (undocumented)
+    record: R;
+    // (undocumented)
+    recordBefore: null | R;
+    // (undocumented)
+    store: Store<R>;
 }
 
 // @public (undocumented)

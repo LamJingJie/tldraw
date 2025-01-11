@@ -1,10 +1,9 @@
 import { Editor, GeoShapeGeoStyle, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
-import { useDialogs } from '../context/dialogs'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { TLUiIconType } from '../icon-types'
-import { useInsertMedia } from './useInsertMedia'
+import { useDefaultHelpers } from '../overrides'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
@@ -45,8 +44,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 
-	const { addDialog } = useDialogs()
-	const insertMedia = useInsertMedia()
+	const helpers = useDefaultHelpers()
 
 	const tools = React.useMemo<TLUiToolsContextType>(() => {
 		const toolsArray: TLUiToolItem<TLUiTranslationKey, TLUiIconType>[] = [
@@ -57,6 +55,17 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'v',
 				readonlyOk: true,
 				onSelect(source) {
+					if (editor.isIn('select')) {
+						// There's a quirk of select mode, where editing a shape is a sub-state of select.
+						// Because the text tool can be locked/sticky, we need to make sure we exit the
+						// text tool.
+						//
+						// psst, if you're changing this code, also change the code
+						// in strange-tools.test.ts! Sadly it's duplicated there.
+						const currentNode = editor.root.getCurrent()!
+						currentNode.exit({}, currentNode.id)
+						currentNode.enter({}, currentNode.id)
+					}
 					editor.setCurrentTool('select')
 					trackEvent('select-tool', { source, id: 'select' })
 				},
@@ -154,7 +163,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'tool-media',
 				kbd: '$u',
 				onSelect(source) {
-					insertMedia()
+					helpers.insertMedia()
 					trackEvent('select-tool', { source, id: 'media' })
 				},
 			},
@@ -184,7 +193,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: 'tool.embed',
 				icon: 'dot',
 				onSelect(source) {
-					addDialog({ component: EmbedDialog })
+					helpers.addDialog({ component: EmbedDialog })
 					trackEvent('select-tool', { source, id: 'embed' })
 				},
 			},
@@ -206,11 +215,11 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 		const tools = Object.fromEntries(toolsArray.map((t) => [t.id, t]))
 
 		if (overrides) {
-			return overrides(editor, tools, { insertMedia })
+			return overrides(editor, tools, helpers)
 		}
 
 		return tools
-	}, [overrides, editor, trackEvent, insertMedia, addDialog])
+	}, [overrides, editor, trackEvent, helpers])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
 }

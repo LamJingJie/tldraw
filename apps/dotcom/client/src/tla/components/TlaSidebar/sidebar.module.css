@@ -1,0 +1,463 @@
+.sidebar {
+	position: absolute;
+	display: flex;
+	top: 0px;
+	left: calc(var(--tla-sidebar-width) * -1);
+	height: 100%;
+	width: var(--tla-sidebar-width);
+	z-index: 100;
+	transform: translate(0px, 0px);
+	flex-direction: column;
+	flex: 0 0 auto;
+	padding: 3px 12px 2px;
+	background: var(--tla-color-sidebar);
+	border-right: 1px solid transparent;
+	transition: transform 0.16s ease-in-out;
+}
+
+.sidebarDragOverlay {
+	position: absolute;
+	inset: 0px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: 600;
+	z-index: 1000;
+	background-color: var(--tla-color-sidebar);
+	content: 'Upload .tldr files';
+	opacity: 0;
+	animation: 0.2s fade-in 0.25s forwards;
+}
+
+@keyframes fade-in {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+.sidebarOverlayMobile {
+	all: unset;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: 99;
+	background-color: var(--tla-color-overlay);
+	display: none;
+}
+
+@media (min-width: 768px) {
+	.sidebar {
+		border-right: 1px solid var(--color-low);
+	}
+	.sidebar[data-visible='true'] {
+		transform: translate(100%, 0px);
+		transition: transform 0.22s ease-out;
+	}
+}
+
+@media (max-width: 767px) {
+	.sidebar {
+		--w: min(320px, max(220px, calc(100vw - 100px)));
+		left: calc(var(--w) * -1);
+		width: var(--w);
+		transition: none;
+	}
+
+	.sidebar[data-visiblemobile='true'] {
+		transform: translate(100%, 0px);
+	}
+
+	.sidebarOverlayMobile[data-visiblemobile='true'] {
+		display: block;
+	}
+}
+
+.top,
+.bottom {
+	display: flex;
+	flex-direction: row;
+	flex: 0 0 auto;
+}
+
+.content {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	overflow-x: hidden;
+	overflow-y: auto;
+	padding-bottom: 40px;
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
+}
+
+.content::-webkit-scrollbar {
+	display: none;
+}
+
+.hoverable::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 0px;
+	right: 0px;
+	bottom: 2px;
+	border-radius: 4px;
+	background-color: var(--tla-color-hover-1);
+	z-index: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+.hoverable:has(*[data-state='open'])::after,
+.hoverable[data-active='true']::after {
+	background-color: var(--tla-color-hover-2);
+	visibility: visible;
+}
+
+.hoverable:has(*[data-state='open']) .collaborator {
+	display: none;
+}
+
+@media (hover: hover) {
+	.hoverable:hover::after {
+		visibility: visible;
+	}
+
+	.hoverable {
+		color: var(--tla-color-text-2);
+	}
+	.hoverable[data-active='true'],
+	.hoverable:hover {
+		color: var(--tla-color-text-1);
+	}
+}
+
+.toggle {
+	position: relative;
+	background: none;
+	border: none;
+	cursor: pointer;
+	width: 40px;
+	height: 40px;
+	color: var(--tla-color-text-1);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: all;
+	flex-shrink: 0;
+	padding: 0px;
+}
+
+@media (hover: hover) {
+	.toggle:hover {
+		z-index: 100;
+	}
+}
+
+.toggle::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	right: 4px;
+	bottom: 4px;
+	border-radius: 4px;
+	pointer-events: none;
+	z-index: 0;
+	visibility: hidden;
+	background-color: var(--tla-color-hover-1);
+}
+
+@media (hover: hover) {
+	.toggle:hover::after {
+		visibility: visible;
+	}
+}
+
+.toggle[data-mobile='true'] {
+	display: flex;
+}
+
+.toggle[data-mobile='false'] {
+	display: none;
+}
+
+@media (min-width: 768px) {
+	.toggle[data-mobile='true'] {
+		display: none;
+	}
+
+	.toggle[data-mobile='false'] {
+		display: flex;
+	}
+}
+
+.create {
+	background: none;
+	border: none;
+	cursor: pointer;
+	position: relative;
+	top: 0.5px;
+	right: -10px;
+	height: 40px;
+	width: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--tla-color-text-1);
+	padding: 0px;
+	z-index: 10;
+}
+
+.create::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	right: 4px;
+	bottom: 4px;
+	border-radius: 4px;
+	pointer-events: none;
+	z-index: 0;
+	visibility: hidden;
+	background-color: var(--tla-color-hover-1);
+}
+
+@media (hover: hover) {
+	.sidebar:hover .create:hover::after {
+		visibility: visible;
+	}
+}
+
+.label {
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding: 0 0px;
+	position: relative;
+	z-index: 1;
+}
+
+.user,
+.workspace {
+	background: none;
+	border: none;
+	position: relative;
+	height: 40px;
+	flex-grow: 2;
+	display: flex;
+	align-items: center;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding-right: 6px;
+	padding-left: 2px;
+	background-color: var(--tla-color-sidebar);
+}
+
+.workspace {
+	padding-bottom: 1px;
+}
+
+.user {
+	padding: 0px 8px;
+	gap: 8px;
+}
+
+.userName {
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.main-link {
+	position: relative;
+	width: 100%;
+	height: 40px;
+	padding-right: 4px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	overflow: hidden;
+	color: var(--tla-color-text-2);
+	flex: 0 0 auto;
+}
+
+.section {
+	background: var(--tla-color-sidebar);
+}
+
+.sectionTitle {
+	position: relative;
+	width: 100%;
+	height: 36px;
+	padding: 0px 8px 0px 8px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	overflow: hidden;
+	gap: 4px;
+	font-weight: bold;
+	color: var(--tla-color-text-3);
+}
+
+.link {
+	background-color: var(--tla-color-sidebar);
+	position: relative;
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	height: 36px;
+	padding: 0px 8px 0px 8px;
+}
+
+.linkContent {
+	flex: 1 1 auto;
+	overflow: hidden;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 8px;
+	position: relative;
+	pointer-events: none;
+	z-index: 2;
+}
+
+.linkContent > .label {
+	padding: 0px;
+	flex: 0 1 auto;
+}
+
+.renameWrapper {
+	background-color: var(--tla-color-sidebar);
+	outline: 1px solid var(--color-primary);
+	outline-offset: -2px;
+	border-radius: 6px;
+}
+
+.renameWrapper > div {
+	height: 36px;
+	padding: 0px 8px 0px 8px;
+}
+
+.rename {
+	height: 36px;
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	position: relative;
+	z-index: 1;
+}
+
+.collaborator {
+	flex: 0 0 auto;
+}
+
+.linkButton {
+	padding: 0px;
+	background: none;
+	border: none;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	cursor: pointer;
+	z-index: 2;
+	pointer-events: all;
+}
+
+.linkMenu {
+	padding: 0px;
+	background: none;
+	border: none;
+	position: relative;
+	outline: none;
+	margin-right: -10px;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--tla-color-text-3);
+	flex: 0 0 auto;
+	z-index: 3;
+	cursor: pointer;
+}
+
+@media (hover: hover) {
+	.linkMenu {
+		display: none;
+	}
+	/*
+		For guest files we show a guest icon at the end of the filename
+		but we don't want it to jump out of the way when the user hovers
+	*/
+
+	.link[data-is-own-file='false'] .linkMenu {
+		visibility: hidden;
+		display: flex;
+	}
+
+	.workspace .linkMenu[data-state='open'],
+	.user .linkMenu[data-state='open'],
+	.link .linkMenu[data-state='open'],
+	.workspace:hover .linkMenu,
+	.user:hover .linkMenu,
+	.link:hover .linkMenu {
+		visibility: visible;
+		display: flex;
+	}
+
+	.user .linkMenu[data-state='open']::after {
+		visibility: visible;
+		background-color: var(--tla-color-hover-2);
+	}
+
+	.linkMenu:hover {
+		color: var(--tla-color-text-1);
+	}
+}
+
+.userButton {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.guestBadge {
+	display: inline-flex;
+	pointer-events: all;
+	flex: 0 0 auto;
+}
+
+.guestBadgeTrigger {
+	margin-left: 4px;
+	border-radius: 50%;
+	overflow: hidden;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	outline: none;
+	border: none;
+	width: 14px;
+	height: 14px;
+	z-index: 3;
+	padding: 0;
+	background: none;
+	color: var(--tla-color-text-1);
+}

@@ -75,6 +75,8 @@ const Collaborator = track(function Collaborator({
 	const { userId, chatMessage, brush, scribbles, selectedShapeIds, userName, cursor, color } =
 		latestPresence
 
+	if (!cursor) return null
+
 	// Add a little padding to the top-left of the viewport
 	// so that the cursor doesn't get cut off
 	const isCursorInViewport = !(
@@ -103,7 +105,7 @@ const Collaborator = track(function Collaborator({
 					color={color}
 					zoom={zoomLevel}
 					name={userName !== 'New User' ? userName : null}
-					chatMessage={chatMessage}
+					chatMessage={chatMessage ?? ''}
 				/>
 			) : CollaboratorHint ? (
 				<CollaboratorHint
@@ -130,15 +132,17 @@ const Collaborator = track(function Collaborator({
 				</>
 			) : null}
 			{CollaboratorShapeIndicator &&
-				selectedShapeIds.map((shapeId) => (
-					<CollaboratorShapeIndicator
-						className="tl-collaborator__shape-indicator"
-						key={userId + '_' + shapeId}
-						shapeId={shapeId}
-						color={color}
-						opacity={0.5}
-					/>
-				))}
+				selectedShapeIds
+					.filter((id) => !editor.isShapeHidden(id))
+					.map((shapeId) => (
+						<CollaboratorShapeIndicator
+							className="tl-collaborator__shape-indicator"
+							key={userId + '_' + shapeId}
+							shapeId={shapeId}
+							color={color}
+							opacity={0.5}
+						/>
+					))}
 		</>
 	)
 })
@@ -169,7 +173,7 @@ function useCollaboratorState(editor: Editor, latestPresence: TLInstancePresence
 	if (latestPresence) {
 		// We can do this on every render, it's free and cheaper than an effect
 		// remember, there can be lots and lots of cursors moving around all the time
-		rLastActivityTimestamp.current = latestPresence.lastActivityTimestamp
+		rLastActivityTimestamp.current = latestPresence.lastActivityTimestamp ?? Infinity
 	}
 
 	return state

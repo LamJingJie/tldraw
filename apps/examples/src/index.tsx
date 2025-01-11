@@ -1,5 +1,7 @@
 import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import {
 	DefaultErrorFallback,
@@ -59,9 +61,11 @@ const router = createBrowserRouter([
 					const Component = await example.loadComponent()
 					return {
 						element: (
-							<ExamplePage example={example}>
-								<ExampleWrapper example={example} component={Component} />
-							</ExamplePage>
+							<NoIndex>
+								<ExamplePage example={example}>
+									<ExampleWrapper example={example} component={Component} />
+								</ExamplePage>
+							</NoIndex>
 						),
 					}
 				},
@@ -71,7 +75,11 @@ const router = createBrowserRouter([
 				lazy: async () => {
 					const Component = await example.loadComponent()
 					return {
-						element: <ExampleWrapper example={example} component={Component} />,
+						element: (
+							<NoIndex>
+								<ExampleWrapper example={example} component={Component} />,
+							</NoIndex>
+						),
 					}
 				},
 			},
@@ -79,15 +87,47 @@ const router = createBrowserRouter([
 	),
 ])
 
+function NoIndex({ children }: { children: React.ReactNode }) {
+	return (
+		<>
+			<Helmet>
+				<meta name="robots" content="noindex, noimageindex, nofollow" />
+			</Helmet>
+			{children}
+		</>
+	)
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 	const rootElement = document.getElementById('root')!
 	const root = createRoot(rootElement!)
 	root.render(
-		<ErrorBoundary
-			fallback={(error) => <DefaultErrorFallback error={error} />}
-			onError={(error) => console.error(error)}
-		>
-			<RouterProvider router={router} />
-		</ErrorBoundary>
+		<StrictMode>
+			<ErrorBoundary
+				fallback={(error) => <DefaultErrorFallback error={error} />}
+				onError={(error) => console.error(error)}
+			>
+				<HelmetProvider>
+					<RootMeta />
+					<RouterProvider router={router} />
+				</HelmetProvider>
+			</ErrorBoundary>
+		</StrictMode>
 	)
 })
+
+function RootMeta() {
+	return (
+		<Helmet>
+			<title>tldraw examples</title>
+			<meta
+				name="keywords"
+				content="tldraw, examples, whiteboard, react, collaborative whiteboard, online drawing, team collboration, react, library"
+			/>
+			<meta
+				name="description"
+				content="Examples for using tldraw - a library for building infinite canvases with React. "
+			/>
+		</Helmet>
+	)
+}

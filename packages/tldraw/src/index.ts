@@ -1,5 +1,25 @@
 /// <reference types="react" />
 
+import { registerTldrawLibraryVersion } from '@tldraw/editor'
+export { usePrefersReducedMotion } from './lib/shapes/shared/usePrefersReducedMotion'
+export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
+export { TldrawUiDialogs } from './lib/ui/components/Dialogs'
+export { TldrawUiToasts } from './lib/ui/components/Toasts'
+export {
+	TldrawUiMenuActionCheckboxItem,
+	type TLUiMenuActionCheckboxItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuActionCheckboxItem'
+export {
+	TldrawUiMenuActionItem,
+	type TLUiMenuActionItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuActionItem'
+export {
+	TldrawUiMenuToolItem,
+	type TLUiMenuToolItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
+export { TldrawUiDialogsProvider, type TLUiDialogsProviderProps } from './lib/ui/context/dialogs'
+export { TldrawUiToastsProvider, type TLUiToastsProviderProps } from './lib/ui/context/toasts'
+export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
@@ -11,6 +31,15 @@ export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackgroun
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
 export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
+export {
+	DEFAULT_EMBED_DEFINITIONS,
+	embedShapePermissionDefaults,
+	type CustomEmbedDefinition,
+	type DefaultEmbedDefinitionType,
+	type EmbedDefinition,
+	type TLEmbedDefinition,
+	type TLEmbedShapePermissions,
+} from './lib/defaultEmbedDefinitions'
 export {
 	centerSelectionAroundPoint,
 	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
@@ -47,12 +76,16 @@ export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
 export { TextLabel, type TextLabelProps } from './lib/shapes/shared/TextLabel'
 export {
+	ARROW_LABEL_FONT_SIZES,
 	FONT_FAMILIES,
+	FONT_SIZES,
 	LABEL_FONT_SIZES,
+	STROKE_SIZES,
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
+export { useAsset, useImageOrVideoAsset } from './lib/shapes/shared/useImageOrVideoAsset'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
@@ -228,10 +261,12 @@ export {
 	ConvertToEmbedMenuItem,
 	CopyAsMenuGroup,
 	CopyMenuItem,
+	CursorChatItem,
 	CutMenuItem,
 	DeleteMenuItem,
 	DuplicateMenuItem,
 	EditLinkMenuItem,
+	EditMenuSubmenu,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	MoveToPageMenu,
@@ -242,10 +277,12 @@ export {
 	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
 	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
 	ToggleLockMenuItem,
+	TogglePasteAtCursorItem,
 	ToggleReduceMotionItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
@@ -326,7 +363,7 @@ export {
 export {
 	TldrawUiMenuContextProvider,
 	type TLUiMenuContextProviderProps,
-	type TldrawUiMenuContextType,
+	type TLUiMenuContextType,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuContext'
 export {
 	TldrawUiMenuGroup,
@@ -343,7 +380,7 @@ export {
 export { PORTRAIT_BREAKPOINT } from './lib/ui/constants'
 export {
 	TldrawUiContextProvider,
-	type TldrawUiContextProviderProps,
+	type TLUiContextProviderProps,
 } from './lib/ui/context/TldrawUiContextProvider'
 export {
 	unwrapLabel,
@@ -371,7 +408,7 @@ export {
 	type TLUiDialogsContextType,
 } from './lib/ui/context/dialogs'
 export {
-	UiEventsProvider,
+	TldrawUiEventsProvider,
 	useUiEvents,
 	type EventsProviderProps,
 	type TLUiEventContextType,
@@ -391,6 +428,7 @@ export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
+export { useCollaborationStatus, useShowCollaborationUi } from './lib/ui/hooks/useIsMultiplayer'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
@@ -471,3 +509,9 @@ export {
 	type TldrawFile,
 	type TldrawFileParseError,
 } from './lib/utils/tldr/file'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

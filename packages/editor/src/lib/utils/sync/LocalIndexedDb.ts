@@ -9,14 +9,16 @@ const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'
 const LEGACY_ASSET_STORE_PREFIX = 'TLDRAW_ASSET_STORE_v1'
 const dbNameIndexKey = 'TLDRAW_DB_NAME_INDEX_v2'
 
-const Table = {
+/** @internal */
+export const Table = {
 	Records: 'records',
 	Schema: 'schema',
 	SessionState: 'session_state',
 	Assets: 'assets',
 } as const
 
-type StoreName = (typeof Table)[keyof typeof Table]
+/** @internal */
+export type StoreName = (typeof Table)[keyof typeof Table]
 
 async function openLocalDb(persistenceKey: string) {
 	const storeId = STORE_PREFIX + persistenceKey
@@ -56,6 +58,7 @@ async function migrateLegacyAssetDbIfNeeded(persistenceKey: string) {
 			}
 		},
 	})
+	if (!oldAssetDb.objectStoreNames.contains('assets')) return
 
 	const oldTx = oldAssetDb.transaction(['assets'], 'readonly')
 	const oldAssetStore = oldTx.objectStore('assets')
@@ -108,7 +111,7 @@ export class LocalIndexedDb {
 		})()
 	}
 
-	getDb() {
+	private getDb() {
 		return this.getDbPromise
 	}
 
@@ -138,11 +141,19 @@ export class LocalIndexedDb {
 			assert(!this.isClosed, 'db is closed')
 			const db = await this.getDb()
 			const tx = db.transaction(names, mode)
+			// need to add a catch here early to prevent unhandled promise rejection
+			// during react-strict-mode where this tx.done promise can be rejected
+			// before we have a chance to await on it
+			const done = tx.done.catch((e: unknown) => {
+				if (!this.isClosed) {
+					throw e
+				}
+			})
 			try {
 				return await cb(tx)
 			} finally {
 				if (!this.isClosed) {
-					await tx.done
+					await done
 				} else {
 					tx.abort()
 				}
@@ -279,14 +290,14 @@ export class LocalIndexedDb {
 		})
 	}
 
-	async getAsset(assetId: string): Promise<Blob | undefined> {
+	async getAsset(assetId: string): Promise<File | undefined> {
 		return await this.tx('readonly', [Table.Assets], async (tx) => {
 			const assetsStore = tx.objectStore(Table.Assets)
 			return await assetsStore.get(assetId)
 		})
 	}
 
-	async storeAsset(assetId: string, blob: Blob) {
+	async storeAsset(assetId: string, blob: File) {
 		await this.tx('readwrite', [Table.Assets], async (tx) => {
 			const assetsStore = tx.objectStore(Table.Assets)
 			await assetsStore.put(blob, assetId)

@@ -1,3 +1,4 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export {
 	type TLAssetContext,
 	type TLAssetStore,
@@ -22,7 +23,12 @@ export {
 	createBindingValidator,
 	type TLBaseBinding,
 } from './bindings/TLBaseBinding'
-export { createPresenceStateDerivation } from './createPresenceStateDerivation'
+export {
+	createPresenceStateDerivation,
+	getDefaultUserPresence,
+	type TLPresenceStateInfo,
+	type TLPresenceUserInfo,
+} from './createPresenceStateDerivation'
 export {
 	createTLSchema,
 	defaultBindingSchemas,
@@ -70,7 +76,12 @@ export {
 	type TLUnknownBinding,
 } from './records/TLBinding'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
-export { DocumentRecordType, TLDOCUMENT_ID, type TLDocument } from './records/TLDocument'
+export {
+	DocumentRecordType,
+	TLDOCUMENT_ID,
+	isDocument,
+	type TLDocument,
+} from './records/TLDocument'
 export {
 	TLINSTANCE_ID,
 	pluckPreservingValues,
@@ -151,13 +162,9 @@ export {
 	type TLDrawShapeSegment,
 } from './shapes/TLDrawShape'
 export {
-	EMBED_DEFINITIONS,
 	embedShapeMigrations,
-	embedShapePermissionDefaults,
 	embedShapeProps,
-	type EmbedDefinition,
 	type TLEmbedShape,
-	type TLEmbedShapePermissions,
 	type TLEmbedShapeProps,
 } from './shapes/TLEmbedShape'
 export {
@@ -254,3 +261,9 @@ export {
 	type TLLanguage,
 } from './translations/translations'
 export { type SetValue } from './util-types'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

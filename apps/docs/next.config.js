@@ -4,6 +4,22 @@ const nextConfig = {
 	experimental: {
 		scrollRestoration: true,
 	},
+	images: {
+		remotePatterns: [
+			{
+				protocol: 'https',
+				hostname: 'substackcdn.com',
+			},
+			{
+				protocol: 'https',
+				hostname: 'i.pravatar.cc',
+			},
+			{
+				protocol: 'https',
+				hostname: 'i.imgur.com',
+			},
+		],
+	},
 	transpilePackages: [],
 	async redirects() {
 		return [
@@ -67,6 +83,22 @@ const nextConfig = {
 				// For reverse compatibility with old links
 				source: '/gen/:slug*',
 				destination: '/reference/:slug*',
+				permanent: true,
+			},
+			// redirects at the top level
+			{
+				source: '/examples',
+				destination: '/examples/basic/basic',
+				permanent: true,
+			},
+			{
+				source: '/reference',
+				destination: '/reference/editor/Editor',
+				permanent: true,
+			},
+			{
+				source: '/docs',
+				destination: '/quick-start',
 				permanent: true,
 			},
 		]

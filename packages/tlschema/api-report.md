@@ -9,6 +9,7 @@ import { Expand } from '@tldraw/utils';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { LegacyMigrations } from '@tldraw/store';
+import { MakeUndefinedOptional } from '@tldraw/utils';
 import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
@@ -84,25 +85,13 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
-export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<{
+export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
 id: TLAssetId;
 meta: JsonObject;
 props: Props;
 type: Type;
 typeName: 'asset';
-}>]: {
-id: TLAssetId;
-meta: JsonObject;
-props: Props;
-type: Type;
-typeName: 'asset';
-}[P]; } & { [P_1 in T.ExtractOptionalKeys<{
-id: TLAssetId;
-meta: JsonObject;
-props: Props;
-type: Type;
-typeName: 'asset';
-}>]?: {
+}[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
 id: TLAssetId;
 meta: JsonObject;
 props: Props;
@@ -126,14 +115,10 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<TLBaseBinding<Type, Props>>]: TLBaseBinding<Type, Props>[P]; } & { [P_1 in T.ExtractOptionalKeys<TLBaseBinding<Type, Props>>]?: TLBaseBinding<Type, Props>[P_1] | undefined; }>>;
+}): T.ObjectValidator<Expand<    { [P in "fromId" | "id" | "meta" | "toId" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseBinding<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseBinding<Type, Props>[P_1] | undefined; }>>;
 
 // @public
-export const createPresenceStateDerivation: ($user: Signal<{
-    color: string;
-    id: string;
-    name: string;
-}>, instanceId?: TLInstancePresence['id']) => (store: TLStore) => Signal<null | TLInstancePresence>;
+export function createPresenceStateDerivation($user: Signal<TLPresenceUserInfo>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence>;
 
 // @public (undocumented)
 export function createShapeId(id?: string): TLShapeId;
@@ -151,7 +136,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<TLBaseShape<Type, Props>>]: TLBaseShape<Type, Props>[P]; } & { [P_1 in T.ExtractOptionalKeys<TLBaseShape<Type, Props>>]?: TLBaseShape<Type, Props>[P_1] | undefined; }>>;
+}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>>;
 
 // @public
 export function createTLSchema({ shapes, bindings, migrations, }?: {
@@ -275,260 +260,7 @@ export const drawShapeMigrations: TLPropsMigrations;
 export const drawShapeProps: RecordProps<TLDrawShape>;
 
 // @public (undocumented)
-export const EMBED_DEFINITIONS: readonly [{
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com", "localhost:3000"];
-    readonly minHeight: 300;
-    readonly minWidth: 300;
-    readonly overridePermissions: {
-        readonly 'allow-top-navigation': true;
-    };
-    readonly title: "tldraw";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "tldraw";
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["figma.com"];
-    readonly title: "Figma";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "figma";
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["google.*"];
-    readonly overridePermissions: {
-        readonly 'allow-presentation': true;
-    };
-    readonly title: "Google Maps";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "google_maps";
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["val.town"];
-    readonly minHeight: 100;
-    readonly minWidth: 260;
-    readonly title: "Val Town";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "val_town";
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["codesandbox.io"];
-    readonly minHeight: 300;
-    readonly minWidth: 300;
-    readonly title: "CodeSandbox";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "codesandbox";
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 400;
-    readonly hostnames: readonly ["codepen.io"];
-    readonly minHeight: 300;
-    readonly minWidth: 300;
-    readonly title: "Codepen";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "codepen";
-    readonly width: 520;
-}, {
-    readonly doesResize: false;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 400;
-    readonly hostnames: readonly ["scratch.mit.edu"];
-    readonly title: "Scratch";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "scratch";
-    readonly width: 520;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 450;
-    readonly hostnames: readonly ["*.youtube.com", "youtube.com", "youtu.be"];
-    readonly isAspectRatioLocked: true;
-    readonly overridePermissions: {
-        readonly 'allow-popups-to-escape-sandbox': true;
-        readonly 'allow-presentation': true;
-    };
-    readonly title: "YouTube";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "youtube";
-    readonly width: 800;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["calendar.google.*"];
-    readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
-    readonly minHeight: 360;
-    readonly minWidth: 460;
-    readonly overridePermissions: {
-        readonly 'allow-popups-to-escape-sandbox': true;
-    };
-    readonly title: "Google Calendar";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "google_calendar";
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["docs.google.*"];
-    readonly minHeight: 360;
-    readonly minWidth: 460;
-    readonly overridePermissions: {
-        readonly 'allow-popups-to-escape-sandbox': true;
-    };
-    readonly title: "Google Slides";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "google_slides";
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["gist.github.com"];
-    readonly title: "GitHub Gist";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "github_gist";
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["replit.com"];
-    readonly title: "Replit";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "replit";
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["felt.com"];
-    readonly title: "Felt";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "felt";
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["open.spotify.com"];
-    readonly minHeight: 500;
-    readonly overrideOutlineRadius: 12;
-    readonly title: "Spotify";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "spotify";
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 360;
-    readonly hostnames: readonly ["vimeo.com", "player.vimeo.com"];
-    readonly isAspectRatioLocked: true;
-    readonly title: "Vimeo";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "vimeo";
-    readonly width: 640;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["excalidraw.com"];
-    readonly isAspectRatioLocked: true;
-    readonly title: "Excalidraw";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "excalidraw";
-    readonly width: 720;
-}, {
-    readonly backgroundColor: "#fff";
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["observablehq.com"];
-    readonly isAspectRatioLocked: false;
-    readonly title: "Observable";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "observable";
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 450;
-    readonly hostnames: readonly ["desmos.com"];
-    readonly title: "Desmos";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "desmos";
-    readonly width: 700;
-}];
-
-// @public (undocumented)
-export interface EmbedDefinition {
-    // (undocumented)
-    readonly backgroundColor?: string;
-    // (undocumented)
-    readonly doesResize: boolean;
-    // (undocumented)
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    // (undocumented)
-    readonly height: number;
-    // (undocumented)
-    readonly hostnames: readonly string[];
-    // (undocumented)
-    readonly instructionLink?: string;
-    // (undocumented)
-    readonly isAspectRatioLocked?: boolean;
-    // (undocumented)
-    readonly minHeight?: number;
-    // (undocumented)
-    readonly minWidth?: number;
-    // (undocumented)
-    readonly overrideOutlineRadius?: number;
-    // (undocumented)
-    readonly overridePermissions?: TLEmbedShapePermissions;
-    // (undocumented)
-    readonly title: string;
-    // (undocumented)
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    // (undocumented)
-    readonly type: string;
-    // (undocumented)
-    readonly width: number;
-}
-
-// @public (undocumented)
 export const embedShapeMigrations: TLPropsMigrations;
-
-// @public
-export const embedShapePermissionDefaults: {
-    readonly 'allow-downloads-without-user-activation': false;
-    readonly 'allow-downloads': false;
-    readonly 'allow-forms': true;
-    readonly 'allow-modals': false;
-    readonly 'allow-orientation-lock': false;
-    readonly 'allow-pointer-lock': false;
-    readonly 'allow-popups-to-escape-sandbox': false;
-    readonly 'allow-popups': true;
-    readonly 'allow-presentation': false;
-    readonly 'allow-same-origin': true;
-    readonly 'allow-scripts': true;
-    readonly 'allow-storage-access-by-user-activation': false;
-    readonly 'allow-top-navigation-by-user-activation': false;
-    readonly 'allow-top-navigation': false;
-};
 
 // @public (undocumented)
 export const embedShapeProps: RecordProps<TLEmbedShape>;
@@ -563,6 +295,33 @@ export function getDefaultColorTheme(opts: {
 
 // @public (undocumented)
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
+
+// @public (undocumented)
+export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo): {
+    brush: BoxModel | null;
+    camera: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    chatMessage: string;
+    color: string;
+    currentPageId: TLPageId;
+    cursor: {
+        rotation: number;
+        type: string;
+        x: number;
+        y: number;
+    };
+    followingUserId: null | string;
+    lastActivityTimestamp: number;
+    meta: {};
+    screenBounds: BoxModel;
+    scribbles: TLScribble[];
+    selectedShapeIds: TLShapeId[];
+    userId: string;
+    userName: string;
+} | null;
 
 // @internal (undocumented)
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
@@ -602,6 +361,9 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 
 // @public (undocumented)
 export function isBindingId(id?: string): id is TLBindingId;
+
+// @public (undocumented)
+export function isDocument(record?: UnknownRecord): record is TLDocument;
 
 // @public (undocumented)
 export function isPageId(id: string): id is TLPageId;
@@ -670,6 +432,9 @@ export const LANGUAGES: readonly [{
 }, {
     readonly label: "Slovenščina";
     readonly locale: "sl";
+}, {
+    readonly label: "Somali";
+    readonly locale: "so";
 }, {
     readonly label: "Suomi";
     readonly locale: "fi";
@@ -754,7 +519,7 @@ export const PageRecordType: RecordType<TLPage, "index" | "name">;
 export const parentIdValidator: T.Validator<TLParentId>;
 
 // @internal (undocumented)
-export const pluckPreservingValues: (val?: null | TLInstance) => null | Partial<TLInstance>;
+export function pluckPreservingValues(val?: null | TLInstance): null | Partial<TLInstance>;
 
 // @public (undocumented)
 export const PointerRecordType: RecordType<TLPointer, never>;
@@ -767,7 +532,7 @@ export type RecordProps<R extends UnknownRecord & {
 };
 
 // @public (undocumented)
-export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> = Expand<{
+export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> = MakeUndefinedOptional<{
     [K in keyof Config]: T.TypeOf<Config[K]>;
 }>;
 
@@ -932,7 +697,7 @@ export type TLAssetShape = Extract<TLShape, {
 // @public
 export interface TLAssetStore {
     resolve?(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
-    upload(asset: TLAsset, file: File): Promise<string>;
+    upload(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<string>;
 }
 
 // @public (undocumented)
@@ -1172,11 +937,6 @@ export interface TLDrawShapeSegment {
 
 // @public (undocumented)
 export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>;
-
-// @public (undocumented)
-export type TLEmbedShapePermissions = {
-    [K in keyof typeof embedShapePermissionDefaults]?: boolean;
-};
 
 // @public (undocumented)
 export interface TLEmbedShapeProps {
@@ -1431,7 +1191,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         x: number;
         y: number;
         z: number;
-    };
+    } | null;
     // (undocumented)
     chatMessage: string;
     // (undocumented)
@@ -1444,15 +1204,15 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         type: TLCursor['type'];
         x: number;
         y: number;
-    };
+    } | null;
     // (undocumented)
     followingUserId: null | string;
     // (undocumented)
-    lastActivityTimestamp: number;
+    lastActivityTimestamp: null | number;
     // (undocumented)
     meta: JsonObject;
     // (undocumented)
-    screenBounds: BoxModel;
+    screenBounds: BoxModel | null;
     // (undocumented)
     scribbles: TLScribble[];
     // (undocumented)
@@ -1519,6 +1279,8 @@ export interface TLNoteShapeProps {
     // (undocumented)
     growY: number;
     // (undocumented)
+    labelColor: TLDefaultColorStyle;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
@@ -1566,6 +1328,16 @@ export const TLPOINTER_ID: TLPointerId;
 
 // @public (undocumented)
 export type TLPointerId = RecordId<TLPointer>;
+
+// @public (undocumented)
+export type TLPresenceStateInfo = Parameters<(typeof InstancePresenceRecordType)['create']>[0];
+
+// @public
+export interface TLPresenceUserInfo {
+    color?: null | string;
+    id: string;
+    name?: null | string;
+}
 
 // @public (undocumented)
 export interface TLPropsMigration {
@@ -1637,9 +1409,12 @@ export interface TLStoreProps {
     // (undocumented)
     assets: Required<TLAssetStore>;
     // (undocumented)
-    defaultName: string;
+    collaboration?: {
+        mode?: null | Signal<'readonly' | 'readwrite'>;
+        status: null | Signal<'offline' | 'online'>;
+    };
     // (undocumented)
-    multiplayerStatus: null | Signal<'offline' | 'online'>;
+    defaultName: string;
     onMount(editor: unknown): (() => void) | void;
 }
 

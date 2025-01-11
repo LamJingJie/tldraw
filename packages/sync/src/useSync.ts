@@ -1,29 +1,31 @@
-import { isSignal } from '@tldraw/state'
+import { atom, isSignal, transact } from '@tldraw/state'
 import { useAtom } from '@tldraw/state-react'
 import {
 	ClientWebSocketAdapter,
-	TLCloseEventCode,
-	TLIncompatibilityReason,
-	TLPersistentClientSocketStatus,
 	TLRemoteSyncError,
 	TLSyncClient,
+	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
 import { useEffect } from 'react'
 import {
 	Editor,
+	InstancePresenceRecordType,
 	Signal,
 	TAB_ID,
 	TLAssetStore,
+	TLPresenceStateInfo,
+	TLPresenceUserInfo,
 	TLRecord,
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
 	computed,
-	createPresenceStateDerivation,
 	createTLStore,
 	defaultUserPreferences,
+	getDefaultUserPresence,
 	getUserPreferences,
 	uniqueId,
+	useReactiveEvent,
 	useRefState,
 	useShallowObjectIdentity,
 	useTLSchemaFromUtils,
@@ -74,6 +76,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		onMount,
 		trackAnalyticsEvent: track,
 		userInfo,
+		getUserPresence: _getUserPresence,
 		...schemaOpts
 	} = opts
 
@@ -85,8 +88,12 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
 	const prefs = useShallowObjectIdentity(userInfo)
+	const getUserPresence = useReactiveEvent(_getUserPresence ?? getDefaultUserPresence)
 
-	const userAtom = useAtom<TLSyncUserInfo | Signal<TLSyncUserInfo> | undefined>('userAtom', prefs)
+	const userAtom = useAtom<TLPresenceUserInfo | Signal<TLPresenceUserInfo> | undefined>(
+		'userAtom',
+		prefs
+	)
 
 	useEffect(() => {
 		userAtom.set(prefs)
@@ -109,8 +116,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		)
 
 		const socket = new ClientWebSocketAdapter(async () => {
+			const uriString = typeof uri === 'string' ? uri : await uri()
+
 			// set sessionId as a query param on the uri
-			const withParams = new URL(uri)
+			const withParams = new URL(uriString)
 			if (withParams.searchParams.has('sessionId')) {
 				throw new Error(
 					'useSync. "sessionId" is a reserved query param name. Please use a different name'
@@ -127,26 +136,33 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			return withParams.toString()
 		})
 
-		socket.onStatusChange((val: TLPersistentClientSocketStatus, closeCode?: number) => {
-			if (val === 'error' && closeCode === TLCloseEventCode.NOT_FOUND) {
-				track?.(MULTIPLAYER_EVENT_NAME, { name: 'room-not-found', roomId })
-				setState({ error: new TLRemoteSyncError(TLIncompatibilityReason.RoomNotFound) })
-				client.close()
-				socket.close()
-				return
-			}
-		})
-
 		let didCancel = false
+
+		const collaborationStatusSignal = computed('collaboration status', () =>
+			socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
+		)
+
+		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
 
 		const store = createTLStore({
 			id: storeId,
 			schema,
 			assets,
 			onMount,
-			multiplayerStatus: computed('multiplayer status', () =>
-				socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
-			),
+			collaboration: {
+				status: collaborationStatusSignal,
+				mode: syncMode,
+			},
+		})
+
+		const presence = computed('instancePresence', () => {
+			const presenceState = getUserPresence(store, userPreferences.get())
+			if (!presenceState) return null
+
+			return InstancePresenceRecordType.create({
+				...presenceState,
+				id: InstancePresenceRecordType.createId(store.id),
+			})
 		})
 
 		const client = new TLSyncClient({
@@ -157,25 +173,43 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
 				setState({ readyClient: client })
 			},
-			onLoadError(err) {
-				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load-error', roomId })
-				console.error(err)
-				setState({ error: err })
-			},
 			onSyncError(reason) {
-				track?.(MULTIPLAYER_EVENT_NAME, { name: 'sync-error', roomId, reason })
+				console.error('sync error', reason)
+
+				switch (reason) {
+					case TLSyncErrorCloseEventReason.NOT_FOUND:
+						track?.(MULTIPLAYER_EVENT_NAME, { name: 'room-not-found', roomId })
+						break
+					case TLSyncErrorCloseEventReason.FORBIDDEN:
+						track?.(MULTIPLAYER_EVENT_NAME, { name: 'forbidden', roomId })
+						break
+					case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED:
+						track?.(MULTIPLAYER_EVENT_NAME, { name: 'not-authenticated', roomId })
+						break
+					case TLSyncErrorCloseEventReason.RATE_LIMITED:
+						track?.(MULTIPLAYER_EVENT_NAME, { name: 'rate-limited', roomId })
+						break
+					default:
+						track?.(MULTIPLAYER_EVENT_NAME, { name: 'sync-error:' + reason, roomId })
+						break
+				}
+
 				setState({ error: new TLRemoteSyncError(reason) })
+				socket.close()
 			},
-			onAfterConnect() {
-				// if the server crashes and loses all data it can return an empty document
-				// when it comes back up. This is a safety check to make sure that if something like
-				// that happens, it won't render the app broken and require a restart. The user will
-				// most likely lose all their changes though since they'll have been working with pages
-				// that won't exist. There's certainly something we can do to make this better.
-				// but the likelihood of this happening is very low and maybe not worth caring about beyond this.
-				store.ensureStoreIsUsable()
+			onAfterConnect(_, { isReadonly }) {
+				transact(() => {
+					syncMode.set(isReadonly ? 'readonly' : 'readwrite')
+					// if the server crashes and loses all data it can return an empty document
+					// when it comes back up. This is a safety check to make sure that if something like
+					// that happens, it won't render the app broken and require a restart. The user will
+					// most likely lose all their changes though since they'll have been working with pages
+					// that won't exist. There's certainly something we can do to make this better.
+					// but the likelihood of this happening is very low and maybe not worth caring about beyond this.
+					store.ensureStoreIsUsable()
+				})
 			},
-			presence: createPresenceStateDerivation(userPreferences)(store),
+			presence,
 		})
 
 		return () => {
@@ -184,7 +218,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			socket.close()
 			setState(null)
 		}
-	}, [assets, onMount, userAtom, roomId, schema, setState, track, uri])
+	}, [assets, onMount, userAtom, roomId, schema, setState, track, uri, getUserPresence])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',
@@ -204,25 +238,6 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 }
 
 /**
- * The information about a user which is used for multiplayer features.
- * @public
- */
-export interface TLSyncUserInfo {
-	/**
-	 * id - A unique identifier for the user. This should be the same across all devices and sessions.
-	 */
-	id: string
-	/**
-	 * The user's display name. If not given, 'New User' will be shown.
-	 */
-	name?: string | null
-	/**
-	 * The user's color. If not given, a random color will be assigned.
-	 */
-	color?: string | null
-}
-
-/**
  * Options for the {@link useSync} hook.
  * @public
  */
@@ -232,15 +247,20 @@ export interface UseSyncOptions {
 	 *
 	 *   e.g. `wss://server.example.com/my-room` or `ws://localhost:5858/my-room`.
 	 *
-	 * Note that the protocol can also be `https` or `http` and it will upgrade to a websocket connection.
+	 * Note that the protocol can also be `https` or `http` and it will upgrade to a websocket
+	 * connection.
+	 *
+	 * Optionally, you can pass a function which will be called each time a connection is
+	 * established to get the URI. This is useful if you need to include e.g. a short-lived session
+	 * token for authentication.
 	 */
-	uri: string
+	uri: string | (() => string | Promise<string>)
 	/**
 	 * A signal that contains the user information needed for multiplayer features.
 	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
 	 * If not provided, a default implementation based on localStorage will be used.
 	 */
-	userInfo?: TLSyncUserInfo | Signal<TLSyncUserInfo>
+	userInfo?: TLPresenceUserInfo | Signal<TLPresenceUserInfo>
 	/**
 	 * The asset store for blob storage. See {@link tldraw#TLAssetStore}.
 	 *
@@ -255,4 +275,12 @@ export interface UseSyncOptions {
 	roomId?: string
 	/** @internal */
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
+
+	/**
+	 * A reactive function that returns a {@link @tldraw/tlschema#TLInstancePresence} object. The
+	 * result of this function will be synchronized across all clients to display presence
+	 * indicators such as cursors. See {@link @tldraw/tlschema#getDefaultUserPresence} for
+	 * the default implementation of this function.
+	 */
+	getUserPresence?(store: TLStore, user: TLPresenceUserInfo): TLPresenceStateInfo | null
 }

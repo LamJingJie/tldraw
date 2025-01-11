@@ -22,8 +22,11 @@ export const assert: (value: unknown, message?: string) => asserts value;
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
-// @public (undocumented)
-export function bind<T extends Function>(_target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> | void;
+// @public
+export function bind<T extends (...args: any[]) => any>(target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T>;
+
+// @public
+export function bind<This extends object, T extends (...args: any[]) => any>(originalMethod: T, context: ClassMethodDecoratorContext<This, T>): void;
 
 // @internal
 export function clearLocalStorage(): void;
@@ -75,6 +78,15 @@ export interface ErrorResult<E> {
 }
 
 // @internal (undocumented)
+export class ExecutionQueue {
+    constructor(timeout?: number | undefined);
+    // (undocumented)
+    close(): void;
+    // (undocumented)
+    push<T>(task: () => T): Promise<Awaited<T>>;
+}
+
+// @internal (undocumented)
 export function exhaustiveSwitchError(value: never, property?: string): never;
 
 // @public (undocumented)
@@ -92,6 +104,10 @@ export class FileHelpers {
     static blobToText(file: Blob): Promise<string>;
     // (undocumented)
     static dataUrlToArrayBuffer(dataURL: string): Promise<ArrayBuffer>;
+    // (undocumented)
+    static rewriteMimeType(blob: Blob, newMimeType: string): Blob;
+    // (undocumented)
+    static rewriteMimeType(blob: File, newMimeType: string): File;
 }
 
 // @internal
@@ -159,6 +175,9 @@ export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, 
 export function getOwnProperty(obj: object, key: string): unknown;
 
 // @internal (undocumented)
+export function groupBy<K extends string, V>(array: ReadonlyArray<V>, keySelector: (value: V) => K): Record<K, V[]>;
+
+// @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @internal
@@ -209,12 +228,26 @@ export function lerp(a: number, b: number, t: number): number;
 // @public (undocumented)
 export function lns(str: string): string;
 
+// @public (undocumented)
+export type MakeUndefinedOptional<T extends object> = Expand<{
+    [P in {
+        [K in keyof T]: undefined extends T[K] ? never : K;
+    }[keyof T]]: T[P];
+} & {
+    [P in {
+        [K in keyof T]: undefined extends T[K] ? K : never;
+    }[keyof T]]?: T[P];
+}>;
+
 // @internal
 export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(object: {
     readonly [K in Key]: ValueBefore;
 }, mapper: (key: Key, value: ValueBefore) => ValueAfter): {
     [K in Key]: ValueAfter;
 };
+
+// @internal (undocumented)
+export function maxBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
 
 // @internal (undocumented)
 export function measureAverageDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;
@@ -231,6 +264,8 @@ export class MediaHelpers {
         h: number;
         w: number;
     }>;
+    // (undocumented)
+    static getVideoFrameAsDataUrl(video: HTMLVideoElement, time?: number): Promise<string>;
     static getVideoSize(blob: Blob): Promise<{
         h: number;
         w: number;
@@ -253,6 +288,9 @@ export class MediaHelpers {
 
 // @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
+
+// @internal (undocumented)
+export function mockUniqueId(fn: (size?: number) => string): void;
 
 // @public
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp?: boolean): number;
@@ -346,10 +384,16 @@ export type RecursivePartial<T> = {
 };
 
 // @internal (undocumented)
+export function registerTldrawLibraryVersion(name?: string, version?: string, modules?: string): void;
+
+// @internal (undocumented)
 type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & {
     [P in K]-?: T[P];
 }>;
 export { Required_2 as Required }
+
+// @internal (undocumented)
+export function restoreUniqueId(): void;
 
 // @public (undocumented)
 export type Result<T, E> = ErrorResult<E> | OkResult<T>;
@@ -360,17 +404,31 @@ export const Result: {
     ok<T>(value: T): OkResult<T>;
 };
 
+// @internal (undocumented)
+export function retry<T>(fn: () => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
+    abortSignal?: AbortSignal;
+    attempts?: number;
+    matchError?(error: unknown): boolean;
+    waitDuration?: number;
+}): Promise<T>;
+
 // @public
 export function rng(seed?: string): () => number;
 
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
+// @public (undocumented)
+export const safeParseUrl: (url: string, baseUrl?: string | URL) => undefined | URL;
+
 // @internal
 export function setInLocalStorage(key: string, value: string): void;
 
 // @internal
 export function setInSessionStorage(key: string, value: string): void;
+
+// @internal (undocumented)
+export function sleep(ms: number): Promise<void>;
 
 // @public (undocumented)
 export function sortById<T extends {
@@ -381,6 +439,11 @@ export function sortById<T extends {
 export function sortByIndex<T extends {
     index: IndexKey;
 }>(a: T, b: T): -1 | 0 | 1;
+
+// @internal (undocumented)
+export function stringEnum<T extends string>(...values: T[]): {
+    [K in T]: K;
+};
 
 // @internal
 export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;
@@ -396,17 +459,30 @@ export function throttleToNextFrame(fn: () => void): () => void;
 
 // @public (undocumented)
 export class Timers {
+    constructor();
     // (undocumented)
-    dispose(): void;
+    dispose(contextId: string): void;
     // (undocumented)
-    requestAnimationFrame(callback: FrameRequestCallback): number;
+    disposeAll(): void;
     // (undocumented)
-    setInterval(handler: TimerHandler, timeout?: number, ...args: any[]): number;
+    forContext(contextId: string): {
+        dispose: () => void;
+        requestAnimationFrame: (callback: FrameRequestCallback) => number;
+        setInterval: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
+        setTimeout: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
+    };
     // (undocumented)
-    setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number;
+    requestAnimationFrame(contextId: string, callback: FrameRequestCallback): number;
+    // (undocumented)
+    setInterval(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number;
+    // (undocumented)
+    setTimeout(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number;
 }
 
 export { uniq }
+
+// @public
+export function uniqueId(size?: number): string;
 
 // @internal (undocumented)
 export function validateIndexKey(index: string): asserts index is IndexKey;

@@ -5,38 +5,68 @@ import { ActionsProviderProps, TLUiActionsContextType } from './context/actions'
 import { useBreakpoint } from './context/breakpoints'
 import { useDialogs } from './context/dialogs'
 import { useToasts } from './context/toasts'
+import { useMenuClipboardEvents } from './hooks/useClipboardEvents'
+import { useCopyAs } from './hooks/useCopyAs'
+import { useExportAs } from './hooks/useExportAs'
+import { useGetEmbedDefinition } from './hooks/useGetEmbedDefinition'
+import { useInsertMedia } from './hooks/useInsertMedia'
+import { usePrint } from './hooks/usePrint'
 import { TLUiToolsContextType, TLUiToolsProviderProps } from './hooks/useTools'
 import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
 
 /** @public */
 export function useDefaultHelpers() {
 	const { addToast, removeToast, clearToasts } = useToasts()
-	const { addDialog, clearDialogs, removeDialog, updateDialog } = useDialogs()
+	const { addDialog, clearDialogs, removeDialog } = useDialogs()
+
+	const msg = useTranslation()
+	const insertMedia = useInsertMedia()
+	const printSelectionOrPages = usePrint()
+	const { cut, copy, paste } = useMenuClipboardEvents()
+	const copyAs = useCopyAs()
+	const exportAs = useExportAs()
+	const getEmbedDefinition = useGetEmbedDefinition()
+
+	// This is the only one that will change during runtime
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
-	const msg = useTranslation()
+
 	return useMemo(
 		() => ({
 			addToast,
 			removeToast,
 			clearToasts,
 			addDialog,
-			clearDialogs,
 			removeDialog,
-			updateDialog,
+			clearDialogs,
 			msg,
 			isMobile,
+			insertMedia,
+			printSelectionOrPages,
+			cut,
+			copy,
+			paste,
+			copyAs,
+			exportAs,
+			getEmbedDefinition,
 		}),
 		[
-			addDialog,
 			addToast,
-			clearDialogs,
-			clearToasts,
-			msg,
-			removeDialog,
 			removeToast,
-			updateDialog,
+			clearToasts,
+			addDialog,
+			removeDialog,
+			clearDialogs,
+			msg,
 			isMobile,
+			insertMedia,
+			printSelectionOrPages,
+			cut,
+			copy,
+			paste,
+			copyAs,
+			exportAs,
+			getEmbedDefinition,
 		]
 	)
 }
@@ -45,25 +75,25 @@ export function useDefaultHelpers() {
 export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>
 
 /** @public */
-export type TLUiOverrides = Partial<{
-	actions(
+export interface TLUiOverrides {
+	actions?(
 		editor: Editor,
 		actions: TLUiActionsContextType,
 		helpers: TLUiOverrideHelpers
 	): TLUiActionsContextType
-	tools(
+	tools?(
 		editor: Editor,
 		tools: TLUiToolsContextType,
-		helpers: { insertMedia(): void } & TLUiOverrideHelpers
+		helpers: TLUiOverrideHelpers
 	): TLUiToolsContextType
-	translations: TLUiTranslationProviderProps['overrides']
-}>
+	translations?: TLUiTranslationProviderProps['overrides']
+}
 
-export type TLUiOverridesWithoutDefaults = Partial<{
-	actions: ActionsProviderProps['overrides']
-	tools: TLUiToolsProviderProps['overrides']
-	translations: TLUiTranslationProviderProps['overrides']
-}>
+export interface TLUiOverridesWithoutDefaults {
+	actions?: ActionsProviderProps['overrides']
+	tools?: TLUiToolsProviderProps['overrides']
+	translations?: TLUiTranslationProviderProps['overrides']
+}
 
 export function mergeOverrides(
 	overrides: TLUiOverrides[],
@@ -82,10 +112,10 @@ export function mergeOverrides(
 		}
 	}
 	return {
-		actions: (editor, schema) => {
+		actions: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.actions) {
-					schema = override.actions(editor, schema, defaultHelpers)
+					schema = override.actions(editor, schema, helpers)
 				}
 			}
 			return schema
@@ -107,6 +137,7 @@ function useShallowArrayEquality<T extends unknown[]>(array: T): T {
 	return useMemo(() => array, array)
 }
 
+/** @internal */
 export function useMergedTranslationOverrides(
 	overrides?: TLUiOverrides[] | TLUiOverrides
 ): NonNullable<TLUiTranslationProviderProps['overrides']> {

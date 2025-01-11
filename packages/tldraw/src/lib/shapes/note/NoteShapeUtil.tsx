@@ -71,6 +71,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			font: 'draw',
 			align: 'middle',
 			verticalAlign: 'middle',
+			labelColor: 'black',
 			growY: 0,
 			fontSizeAdjustment: 0,
 			url: '',
@@ -176,7 +177,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const {
 			id,
 			type,
-			props: { scale, color, font, size, align, text, verticalAlign, fontSizeAdjustment },
+			props: {
+				labelColor,
+				scale,
+				color,
+				font,
+				size,
+				align,
+				text,
+				verticalAlign,
+				fontSizeAdjustment,
+			},
 		} = shape
 
 		const handleKeyDown = useNoteKeydownHandler(id)
@@ -198,6 +209,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			this.editor,
 		])
 
+		const isDarkMode = useValue('dark mode', () => this.editor.user.getIsDarkMode(), [this.editor])
+
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
 		return (
@@ -209,12 +222,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						width: nw,
 						height: nh,
 						backgroundColor: theme[color].note.fill,
-						borderBottom: hideShadows ? `${3 * scale}px solid rgb(15, 23, 31, .2)` : `none`,
+						borderBottom: hideShadows
+							? isDarkMode
+								? `${2 * scale}px solid rgb(20, 20, 20)`
+								: `${2 * scale}px solid rgb(144, 144, 144)`
+							: 'none',
 						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation, scale),
 					}}
 				>
 					<TextLabel
-						id={id}
+						shapeId={id}
 						type={type}
 						font={font}
 						fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
@@ -224,15 +241,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						text={text}
 						isNote
 						isSelected={isSelected}
-						labelColor={theme[color].note.text}
+						labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
 						wrap
 						padding={16 * scale}
 						onKeyDown={handleKeyDown}
 					/>
 				</div>
-				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-				)}
+				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</>
 		)
 	}

@@ -4,9 +4,9 @@
 
 ```ts
 
-import { Expand } from '@tldraw/utils';
 import { IndexKey } from '@tldraw/utils';
 import { JsonValue } from '@tldraw/utils';
+import { MakeUndefinedOptional } from '@tldraw/utils';
 
 // @public
 const any: Validator<any>;
@@ -45,16 +45,6 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
     // (undocumented)
     readonly valueValidator: Validatable<Value>;
 }
-
-// @public (undocumented)
-export type ExtractOptionalKeys<T extends object> = {
-    [K in keyof T]: undefined extends T[K] ? K : never;
-}[keyof T];
-
-// @public (undocumented)
-export type ExtractRequiredKeys<T extends object> = {
-    [K in keyof T]: undefined extends T[K] ? never : K;
-}[keyof T];
 
 // @public
 const httpUrl: Validator<string>;
@@ -103,11 +93,7 @@ function numberUnion<Key extends string, Config extends UnionValidatorConfig<Key
 // @public
 function object<Shape extends object>(config: {
     readonly [K in keyof Shape]: Validatable<Shape[K]>;
-}): ObjectValidator<Expand<{
-    [P in ExtractRequiredKeys<Shape>]: Shape[P];
-} & {
-    [P in ExtractOptionalKeys<Shape>]?: Shape[P];
-}>>;
+}): ObjectValidator<MakeUndefinedOptional<Shape>>;
 
 // @public (undocumented)
 export class ObjectValidator<Shape extends object> extends Validator<Shape> {
@@ -127,6 +113,9 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 
 // @public (undocumented)
 function optional<T>(validator: Validatable<T>): Validator<T | undefined>;
+
+// @public
+function or<T1, T2>(v1: Validatable<T1>, v2: Validatable<T2>): Validator<T1 | T2>;
 
 // @public
 const positiveInteger: Validator<number>;
@@ -157,6 +146,7 @@ declare namespace T {
         optional,
         nullable,
         literalEnum,
+        or,
         ValidatorFn,
         ValidatorUsingKnownGoodVersionFn,
         Validatable,
@@ -181,8 +171,6 @@ declare namespace T {
         bigint,
         array,
         unknownObject,
-        ExtractRequiredKeys,
-        ExtractOptionalKeys,
         jsonValue,
         linkUrl,
         srcUrl,

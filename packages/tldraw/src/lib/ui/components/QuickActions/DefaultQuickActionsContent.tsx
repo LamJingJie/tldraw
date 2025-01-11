@@ -1,5 +1,4 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useActions } from '../../context/actions'
 import {
 	useCanRedo,
 	useCanUndo,
@@ -7,17 +6,11 @@ import {
 	useUnlockedSelectedShapesCount,
 } from '../../hooks/menu-hooks'
 import { useReadonly } from '../../hooks/useReadonly'
-import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
+import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 
 /** @public @react */
 export function DefaultQuickActionsContent() {
-	const actions = useActions()
-
 	const editor = useEditor()
-
-	const canUndo = useCanUndo()
-	const canRedo = useCanRedo()
-	const oneSelected = useUnlockedSelectedShapesCount(1)
 
 	const isReadonlyMode = useReadonly()
 
@@ -26,17 +19,36 @@ export function DefaultQuickActionsContent() {
 		() => editor.isInAny('select', 'hand', 'zoom'),
 		[editor]
 	)
-	const isInSelectState = useIsInSelectState()
-	const selectDependentActionsEnabled = oneSelected && isInSelectState
 
 	if (isReadonlyMode && !isInAcceptableReadonlyState) return
 
 	return (
 		<>
-			<TldrawUiMenuItem {...actions['undo']} disabled={!canUndo} />
-			<TldrawUiMenuItem {...actions['redo']} disabled={!canRedo} />
-			<TldrawUiMenuItem {...actions['delete']} disabled={!selectDependentActionsEnabled} />
-			<TldrawUiMenuItem {...actions['duplicate']} disabled={!selectDependentActionsEnabled} />
+			<UndoRedoGroup />
+			<DeleteDuplicateGroup />
+		</>
+	)
+}
+
+function DeleteDuplicateGroup() {
+	const oneSelected = useUnlockedSelectedShapesCount(1)
+	const isInSelectState = useIsInSelectState()
+	const selectDependentActionsEnabled = oneSelected && isInSelectState
+	return (
+		<>
+			<TldrawUiMenuActionItem actionId="delete" disabled={!selectDependentActionsEnabled} />
+			<TldrawUiMenuActionItem actionId="duplicate" disabled={!selectDependentActionsEnabled} />
+		</>
+	)
+}
+
+function UndoRedoGroup() {
+	const canUndo = useCanUndo()
+	const canRedo = useCanRedo()
+	return (
+		<>
+			<TldrawUiMenuActionItem actionId="undo" disabled={!canUndo} />
+			<TldrawUiMenuActionItem actionId="redo" disabled={!canRedo} />
 		</>
 	)
 }

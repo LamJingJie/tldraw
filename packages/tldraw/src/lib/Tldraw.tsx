@@ -22,6 +22,7 @@ import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
 import { defaultBindingUtils } from './defaultBindingUtils'
+import { TLEmbedDefinition } from './defaultEmbedDefinitions'
 import {
 	TLExternalContentProps,
 	registerDefaultExternalContentHandlers,
@@ -30,6 +31,7 @@ import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
+import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useToasts } from './ui/context/toasts'
@@ -65,6 +67,7 @@ export interface TldrawBaseProps
 		TldrawEditorBaseProps,
 		TLExternalContentProps {
 	components?: TLComponents
+	embeds?: TLEmbedDefinition[]
 }
 
 /** @public */
@@ -83,6 +86,7 @@ export function Tldraw(props: TldrawProps) {
 		shapeUtils = [],
 		bindingUtils = [],
 		tools = [],
+		embeds,
 		...rest
 	} = props
 
@@ -118,6 +122,18 @@ export function Tldraw(props: TldrawProps) {
 		[_tools]
 	)
 
+	const _imageMimeTypes = useShallowArrayIdentity(
+		acceptedImageMimeTypes ?? DEFAULT_SUPPORTED_IMAGE_TYPES
+	)
+	const _videoMimeTypes = useShallowArrayIdentity(
+		acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
+	)
+
+	const mediaMimeTypes = useMemo(
+		() => [..._imageMimeTypes, ..._videoMimeTypes],
+		[_imageMimeTypes, _videoMimeTypes]
+	)
+
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 	if (preloadingError) {
@@ -131,6 +147,11 @@ export function Tldraw(props: TldrawProps) {
 		)
 	}
 
+	const embedShapeUtil = shapeUtilsWithDefaults.find((util) => util.type === 'embed')
+	if (embedShapeUtil && embeds) {
+		EmbedShapeUtil.setEmbedDefinitions(embeds)
+	}
+
 	return (
 		<TldrawEditor
 			initialState="select"
@@ -140,12 +161,12 @@ export function Tldraw(props: TldrawProps) {
 			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
 		>
-			<TldrawUi {...rest} components={componentsWithDefault}>
+			<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
 				<InsideOfEditorAndUiContext
 					maxImageDimension={maxImageDimension}
 					maxAssetSize={maxAssetSize}
-					acceptedImageMimeTypes={acceptedImageMimeTypes}
-					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
+					acceptedImageMimeTypes={_imageMimeTypes}
+					acceptedVideoMimeTypes={_videoMimeTypes}
 					onMount={onMount}
 				/>
 				{children}
@@ -161,7 +182,9 @@ function InsideOfEditorAndUiContext({
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
-}: TLExternalContentProps & { onMount?: TLOnMountHandler }) {
+}: TLExternalContentProps & {
+	onMount?: TLOnMountHandler
+}) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()

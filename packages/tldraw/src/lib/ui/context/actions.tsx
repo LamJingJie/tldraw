@@ -21,23 +21,15 @@ import {
 } from '@tldraw/editor'
 import * as React from 'react'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
-import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
-import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
-import { useCopyAs } from '../hooks/useCopyAs'
-import { useExportAs } from '../hooks/useExportAs'
 import { flattenShapesToImages } from '../hooks/useFlatten'
-import { useInsertMedia } from '../hooks/useInsertMedia'
-import { useIsMultiplayer } from '../hooks/useIsMultiplayer'
-import { usePrint } from '../hooks/usePrint'
+import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
-import { useDialogs } from './dialogs'
+import { TLUiOverrideHelpers, useDefaultHelpers } from '../overrides'
 import { TLUiEventSource, useUiEvents } from './events'
-import { useToasts } from './toasts'
 
 /** @public */
 export interface TLUiActionItem<
@@ -64,7 +56,7 @@ export interface ActionsProviderProps {
 	overrides?(
 		editor: Editor,
 		actions: TLUiActionsContextType,
-		helpers: undefined
+		helpers: TLUiOverrideHelpers
 	): TLUiActionsContextType
 	children: React.ReactNode
 }
@@ -85,20 +77,11 @@ function getExportName(editor: Editor, defaultName: string) {
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
-	const isMultiplayer = useIsMultiplayer()
-
-	const { addDialog, clearDialogs } = useDialogs()
-	const { clearToasts, addToast } = useToasts()
-	const msg = useTranslation()
-
-	const insertMedia = useInsertMedia()
-	const printSelectionOrPages = usePrint()
-	const { cut, copy, paste } = useMenuClipboardEvents()
-	const copyAs = useCopyAs()
-	const exportAs = useExportAs()
-	const defaultDocumentName = msg('document.default-name')
-
+	const showCollaborationUi = useShowCollaborationUi()
+	const helpers = useDefaultHelpers()
 	const trackEvent = useUiEvents()
+
+	const defaultDocumentName = helpers.msg('document.default-name')
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
@@ -128,7 +111,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('edit-link', { source })
 					editor.markHistoryStoppingPoint('edit-link')
-					addDialog({ component: EditLinkDialog })
+					helpers.addDialog({ component: EditLinkDialog })
 				},
 			},
 			{
@@ -137,7 +120,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$i',
 				onSelect(source) {
 					trackEvent('insert-embed', { source })
-					addDialog({ component: EmbedDialog })
+					helpers.addDialog({ component: EmbedDialog })
 				},
 			},
 			{
@@ -146,7 +129,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$u',
 				onSelect(source) {
 					trackEvent('insert-media', { source })
-					insertMedia()
+					helpers.insertMedia()
 				},
 			},
 			{
@@ -182,7 +165,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'svg', source })
-					exportAs(ids, 'svg', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, 'svg', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -198,7 +181,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'png', source })
-					exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -214,7 +197,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'json', source })
-					exportAs(ids, 'json', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, 'json', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -230,7 +213,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'svg', source })
-					exportAs(
+					helpers.exportAs(
 						Array.from(editor.getCurrentPageShapeIds()),
 						'svg',
 						getExportName(editor, defaultDocumentName)
@@ -249,7 +232,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'png', source })
-					exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -264,7 +247,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'json', source })
-					exportAs(ids, 'json', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, 'json', getExportName(editor, defaultDocumentName))
 				},
 			},
 			{
@@ -281,7 +264,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'svg', source })
-					copyAs(ids, 'svg')
+					helpers.copyAs(ids, 'svg')
 				},
 			},
 			{
@@ -297,7 +280,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'png', source })
-					copyAs(ids, 'png')
+					helpers.copyAs(ids, 'png')
 				},
 			},
 			{
@@ -313,7 +296,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'json', source })
-					copyAs(ids, 'json')
+					helpers.copyAs(ids, 'json')
 				},
 			},
 			{
@@ -450,7 +433,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 							const { url } = shape.props
 
-							const embedInfo = getEmbedInfo(shape.props.url)
+							const embedInfo = helpers.getEmbedDefinition(url)
 
 							if (!embedInfo) continue
 							if (!embedInfo.definition) continue
@@ -926,7 +909,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (mustGoBackToSelectToolFirst()) return
 
 					editor.markHistoryStoppingPoint('cut')
-					cut(source)
+					helpers.cut(source)
 				},
 			},
 			{
@@ -938,7 +921,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					copy(source)
+					helpers.copy(source)
 				},
 			},
 			{
@@ -949,16 +932,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					navigator.clipboard
 						?.read()
 						.then((clipboardItems) => {
-							paste(
+							helpers.paste(
 								clipboardItems,
 								source,
 								source === 'context-menu' ? editor.inputs.currentPagePoint : undefined
 							)
 						})
 						.catch(() => {
-							addToast({
-								title: msg('action.paste-error-title'),
-								description: msg('action.paste-error-description'),
+							helpers.addToast({
+								title: helpers.msg('action.paste-error-title'),
+								description: helpers.msg('action.paste-error-description'),
 								severity: 'error',
 							})
 						})
@@ -1265,8 +1248,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.timers.requestAnimationFrame(() => {
 						editor.run(() => {
 							trackEvent('toggle-focus-mode', { source })
-							clearDialogs()
-							clearToasts()
+							helpers.clearDialogs()
+							helpers.clearToasts()
 							editor.updateInstanceState({ isFocusMode: !editor.getInstanceState().isFocusMode })
 						})
 					})
@@ -1308,7 +1291,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('print', { source })
-					printSelectionOrPages()
+					helpers.printSelectionOrPages()
 				},
 			},
 			{
@@ -1364,7 +1347,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = editor.getSelectedShapeIds()
 					editor.run(() => {
 						editor.markHistoryStoppingPoint('move_shapes_to_page')
-						editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
+						editor.createPage({
+							name: helpers.msg('page-menu.new-page-initial-name'),
+							id: newPageId,
+						})
 						editor.moveShapesToPage(ids, newPageId)
 					})
 					trackEvent('move-to-new-page', { source })
@@ -1426,7 +1412,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 		]
 
-		if (isMultiplayer) {
+		if (showCollaborationUi) {
 			actionItems.push({
 				id: 'open-cursor-chat',
 				label: 'action.open-cursor-chat',
@@ -1451,29 +1437,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		const actions = makeActions(actionItems)
 
 		if (overrides) {
-			return overrides(editor, actions, undefined)
+			return overrides(editor, actions, helpers)
 		}
 
 		return actions
-	}, [
-		editor,
-		trackEvent,
-		overrides,
-		addDialog,
-		addToast,
-		insertMedia,
-		exportAs,
-		copyAs,
-		cut,
-		copy,
-		paste,
-		clearDialogs,
-		clearToasts,
-		printSelectionOrPages,
-		msg,
-		defaultDocumentName,
-		isMultiplayer,
-	])
+	}, [helpers, editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }

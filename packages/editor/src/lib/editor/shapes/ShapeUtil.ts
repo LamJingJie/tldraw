@@ -299,6 +299,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	/**
 	 * Get whether the shape can receive children of a given type.
 	 *
+	 * @param shape - The shape.
 	 * @param type - The shape type.
 	 * @public
 	 */
@@ -341,7 +342,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	): ReactElement | null | Promise<ReactElement | null>
 
 	/** @internal */
-	expandSelectionOutlinePx(shape: Shape): number {
+	expandSelectionOutlinePx(shape: Shape): number | Box {
 		return 0
 	}
 

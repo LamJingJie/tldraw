@@ -56,6 +56,7 @@ export class Erasing extends StateNode {
 	}
 
 	override onExit() {
+		this.editor.setErasingShapes([])
 		this.editor.scribbles.stop(this.scribbleId)
 	}
 
@@ -79,7 +80,7 @@ export class Erasing extends StateNode {
 		const { editor, excludedShapeIds } = this
 		const erasingShapeIds = editor.getErasingShapeIds()
 		const zoomLevel = editor.getZoomLevel()
-		const currentPageShapes = editor.getCurrentPageShapes()
+		const currentPageShapes = editor.getCurrentPageRenderingShapesSorted()
 		const {
 			inputs: { currentPagePoint, previousPagePoint },
 		} = editor
@@ -131,13 +132,11 @@ export class Erasing extends StateNode {
 	complete() {
 		const { editor } = this
 		editor.deleteShapes(editor.getCurrentPageState().erasingShapeIds)
-		editor.setErasingShapes([])
 		this.parent.transition('idle')
 	}
 
 	cancel() {
 		const { editor } = this
-		editor.setErasingShapes([])
 		editor.bailToMark(this.markId)
 		this.parent.transition('idle', this.info)
 	}

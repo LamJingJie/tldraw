@@ -9,8 +9,8 @@ import {
 	objectMapKeys,
 	objectMapValues,
 	throttleToNextFrame,
+	uniqueId,
 } from '@tldraw/utils'
-import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { RecordScope } from './RecordType'
 import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
@@ -192,7 +192,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}) {
 		const { initialData, schema, id } = config
 
-		this.id = id ?? nanoid()
+		this.id = id ?? uniqueId()
 		this.schema = schema
 		this.props = config.props
 
@@ -280,6 +280,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	/**
 	 * Filters out non-document changes from a diff. Returns null if there are no changes left.
 	 * @param change - the records diff
+	 * @param scope - the records scope
 	 * @returns
 	 */
 	filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope) {
@@ -322,6 +323,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * Add some records to the store. It's an error if they already exist.
 	 *
 	 * @param records - The records to add.
+	 * @param phaseOverride - The phase override.
 	 * @public
 	 */
 	put(records: R[], phaseOverride?: 'initialize'): void {
@@ -478,7 +480,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined {
-		return this.atoms.get()[id]?.__unsafe__getWithoutCapture() as any
+		return this.atoms.__unsafe__getWithoutCapture()[id]?.__unsafe__getWithoutCapture() as any
 	}
 
 	/**
@@ -658,11 +660,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			},
 		}
 
-		this.listeners.add(listener)
-
 		if (!this.historyReactor.scheduler.isActivelyListening) {
 			this.historyReactor.start()
+			this.historyReactor.scheduler.execute()
 		}
+
+		this.listeners.add(listener)
 
 		return () => {
 			this.listeners.delete(listener)
@@ -695,6 +698,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			transact(fn)
 		} finally {
 			this.isMergingRemoteChanges = false
+			this.ensureStoreIsUsable()
 		}
 	}
 
@@ -760,6 +764,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @param name - The name of the derivation cache.
 	 * @param derive - A function used to derive the value of the cache.
+	 * @param isEqual - A function that determines equality between two records.
 	 * @public
 	 */
 	createComputedCache<Result, Record extends R = R>(

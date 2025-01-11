@@ -1,11 +1,14 @@
 import {
 	Editor,
+	FileHelpers,
 	Image,
 	PngHelpers,
+	TLImageExportOptions,
 	TLShapeId,
-	TLSvgOptions,
 	debugFlags,
 	exhaustiveSwitchError,
+	sleep,
+	tlenv,
 } from '@tldraw/editor'
 import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
 import { TLExportType } from './exportAs'
@@ -16,23 +19,26 @@ export async function getSvgAsImage(
 	svgString: string,
 	options: {
 		type: 'png' | 'jpeg' | 'webp'
-		quality: number
-		scale: number
 		width: number
 		height: number
+		quality?: number
+		pixelRatio?: number
 	}
 ) {
-	const { type, quality, scale, width, height } = options
+	const { type, width, height, quality = 1, pixelRatio = 2 } = options
 
 	let [clampedWidth, clampedHeight] = await clampToBrowserMaxCanvasSize(
-		width * scale,
-		height * scale
+		width * pixelRatio,
+		height * pixelRatio
 	)
 	clampedWidth = Math.floor(clampedWidth)
 	clampedHeight = Math.floor(clampedHeight)
 	const effectiveScale = clampedWidth / width
 
-	const svgUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }))
+	// usually we would use `URL.createObjectURL` here, but chrome has a bug where `blob:` URLs of
+	// SVGs that use <foreignObject> mark the canvas as tainted, where data: ones do not.
+	// https://issues.chromium.org/issues/41054640
+	const svgUrl = await FileHelpers.blobToDataUrl(new Blob([svgString], { type: 'image/svg+xml' }))
 
 	const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
 		const image = Image()
@@ -43,8 +49,8 @@ export async function getSvgAsImage(
 			// actually loaded. just waiting around a while is brittle, but
 			// there doesn't seem to be any better solution for now :( see
 			// https://bugs.webkit.org/show_bug.cgi?id=219770
-			if (editor.environment.isSafari) {
-				await new Promise((resolve) => editor.timers.setTimeout(resolve, 250))
+			if (tlenv.isSafari) {
+				await sleep(250)
 			}
 
 			const canvas = document.createElement('canvas') as HTMLCanvasElement
@@ -96,9 +102,9 @@ export async function getSvgAsImage(
 	}
 }
 
-async function getSvgString(editor: Editor, ids: TLShapeId[], opts: TLSvgOptions) {
+async function getSvgString(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions) {
 	const svg = await editor.getSvgString(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
-		scale: 1,
+		scale: opts.scale ?? 1,
 		background: editor.getInstanceState().exportBackground,
 		...opts,
 	})
@@ -112,7 +118,7 @@ export async function exportToString(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: 'svg' | 'json',
-	opts: TLSvgOptions = {}
+	opts: TLImageExportOptions = {}
 ) {
 	switch (format) {
 		case 'svg': {
@@ -146,7 +152,7 @@ export async function exportToBlob({
 	editor: Editor
 	ids: TLShapeId[]
 	format: TLExportType
-	opts?: TLSvgOptions
+	opts?: TLImageExportOptions
 }): Promise<Blob> {
 	switch (format) {
 		case 'svg':
@@ -160,8 +166,8 @@ export async function exportToBlob({
 			if (!svgResult) throw new Error('Could not construct image.')
 			const image = await getSvgAsImage(editor, svgResult.svg, {
 				type: format,
-				quality: 1,
-				scale: 2,
+				quality: opts.quality,
+				pixelRatio: opts.pixelRatio,
 				width: svgResult.width,
 				height: svgResult.height,
 			})
@@ -188,7 +194,7 @@ export function exportToBlobPromise(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: TLExportType,
-	opts: TLSvgOptions = {}
+	opts: TLImageExportOptions = {}
 ): { blobPromise: Promise<Blob>; mimeType: string } {
 	return {
 		blobPromise: exportToBlob({ editor, ids, format, opts }),

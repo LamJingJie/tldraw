@@ -3,7 +3,7 @@ import { noop } from '@tldraw/utils'
 import classNames from 'classnames'
 import { ComponentType, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Editor } from '../../editor/Editor'
-import { EditorContext } from '../../hooks/useEditor'
+import { EditorProvider } from '../../hooks/useEditor'
 import { useEditorComponents } from '../../hooks/useEditorComponents'
 import { hardResetEditor } from '../../utils/hardResetEditor'
 import { refreshPage } from '../../utils/refreshPage'
@@ -25,7 +25,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 	try {
 		const components = useEditorComponents()
 		Canvas = components.Canvas ?? null
-	} catch (e) {
+	} catch {
 		// allow this to fail silently
 	}
 
@@ -94,7 +94,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 		textarea.value = errorStack ?? errorMessage
 		document.body.appendChild(textarea)
 		textarea.select()
-		// eslint-disable-next-line deprecation/deprecation
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		document.execCommand('copy')
 		textarea.remove()
 		setDidCopy(true)
@@ -142,9 +142,9 @@ My browser: ${navigator.userAgent}`
 				// not a big deal if it doesn't work - in that case we just have
 				// a plain grey background.
 				<ErrorBoundary onError={noop} fallback={() => null}>
-					<EditorContext.Provider value={editor}>
+					<EditorProvider editor={editor}>
 						<div className="tl-overlay tl-error-boundary__canvas">{Canvas ? <Canvas /> : null}</div>
-					</EditorContext.Provider>
+					</EditorProvider>
 				</ErrorBoundary>
 			)}
 			<div
@@ -165,11 +165,14 @@ My browser: ${navigator.userAgent}`
 					</>
 				) : (
 					<>
-						<h2>Something&apos;s gone wrong.</h2>
+						<h2>Something went wrong</h2>
+						<p>Please refresh the page to continue.</p>
 						<p>
-							Sorry, we encountered an error. Please refresh the page to continue. If you keep
-							seeing this error, you can <a href={url.toString()}>create a GitHub issue</a> or{' '}
-							<a href="https://discord.gg/Cq6cPsTfNy">ask for help on Discord</a>.
+							If you keep seeing this screen, you can create a{' '}
+							<a href={url.toString()}>GitHub issue</a> or ask for help on{' '}
+							<a href="https://discord.gg/Cq6cPsTfNy">Discord</a>. If you are still stuck, you can
+							reset the tldraw data on your machine. This may erase the project you were working on,
+							so try to get help first.
 						</p>
 						{shouldShowError && (
 							<>
