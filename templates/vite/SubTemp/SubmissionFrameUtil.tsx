@@ -1,15 +1,11 @@
 import { useEffect } from "react";
 import {
-  HTMLContainer, ShapeProps, T, TLBaseShape,
+  HTMLContainer, T, TLBaseShape,
     ShapeUtil, Rectangle2d, TLShape, 
     resizeBox,
-    TLOnResizeHandler,
     TldrawUiInput,
-    TLHandle,
-    TLOnClickHandler,
     Geometry2d,
-    TLShapeId,
-    TLOnHandleDragHandler
+
 } from "tldraw";
 
 
@@ -74,7 +70,7 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
                     // image is horizontal
                     if (shapeWidth > shapeHeight){
                         shapeWidth = maxWidth - 20;
-                        shapeHeight = maxWidth / aspectRatio;                        
+                        shapeHeight = shapeWidth / aspectRatio;                        
                     }
                     // image is vertical
                     else if (shapeHeight > shapeWidth){
@@ -135,7 +131,7 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
         }
     }
 
-    static override props: ShapeProps<mySubmissionFrameClass> = {
+    static override props = {
         h: T.number,
         name: T.string,
         w: T.number,
@@ -169,7 +165,7 @@ export class SubmissionFrameUtil extends ShapeUtil<mySubmissionFrameClass> {
         return <rect width={frame.props.w} height={frame.props.h} />
     }
 
-    override onResize: TLOnResizeHandler<mySubmissionFrameClass> = (shape, info) => {
+    override onResize = (shape: any, info: any) => {
         return resizeBox(shape, info)
     }
 
